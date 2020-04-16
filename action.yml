@@ -42,6 +42,8 @@ inputs:
     description: 'The minimum number of "upvotes" that an issue needs to have before not marking as ancient'
   loglevel:
     description: 'Set to DEBUG to enable debug logging'
+  dry-run:
+    description: 'Set to true to not perform repository changes'
 
 runs:
   using: 'docker'
@@ -63,3 +65,4 @@ runs:
     CLOSED_FOR_STALENESS_LABEL: ${{ inputs.closed-for-staleness-label }}
     MINIMUM_UPVOTES_TO_EXEMPT: ${{ inputs.minimum-upvotes-to-exempt }}
     LOGLEVEL: ${{ inputs.loglevel }}
+    DRYRUN: ${{ inputs.dry-run }}

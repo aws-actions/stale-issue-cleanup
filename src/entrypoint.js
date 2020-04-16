@@ -37,6 +37,7 @@ function getAndValidateInputs() {
     exemptPrLabel: process.env.EXEMPT_PR_LABEL,
     responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
     minimumUpvotesToExempt: parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
+    dryrun: !!process.env.DRYRUN,
   };
 
   for (const numberInput of [
@@ -93,14 +94,26 @@ async function processIssues(client, args) {
         lastCommentTime + MS_PER_DAY * args.daysBeforeClose
       );
       if (lastCommentTime > staleLabelTime) {
-        log.debug(`issue was commented on after the label was applied`);
-        await removeLabel(client, issue, staleLabel);
-        await removeLabel(client, issue, responseRequestedLabel);
+        log.debug('issue was commented on after the label was applied');
+        if (args.dryrun) {
+          log.info(
+            `dry run: would remove ${staleLabel} and ${responseRequestedLabel} labels for ${issue.number}`
+          );
+        } else {
+          await removeLabel(client, issue, staleLabel);
+          await removeLabel(client, issue, responseRequestedLabel);
+        }
       } else {
         if (currentTime > sTime) {
           log.debug(`time expired on this issue, need to close it`);
-          await removeLabel(client, issue, staleLabel);
-          await closeIssue(client, issue);
+          if (args.dryrun) {
+            log.info(
+              `dry run: would remove ${staleLabel} for ${issue.number} and close`
+            );
+          } else {
+            await removeLabel(client, issue, staleLabel);
+            await closeIssue(client, issue);
+          }
         } else {
           // else ignore it because we need to wait longer before closing
           log.debug(`${currentTime} is less than ${sTime}, doing nothing`);
@@ -117,11 +130,23 @@ async function processIssues(client, args) {
       );
       if (lastUpdateTme > rrLabelTime) {
         log.debug(`issue was commented on after the label was applied`);
-        await removeLabel(client, issue, responseRequestedLabel);
+        if (args.dryrun) {
+          log.info(
+            `dry run: would remove ${responseRequestedLabel} from ${issue.number}`
+          );
+        } else {
+          await removeLabel(client, issue, responseRequestedLabel);
+        }
       } else {
         if (currentTime >= rrTime) {
           log.debug(`time expired on this issue, need to label it stale`);
-          await markStale(client, issue, staleMessage, staleLabel);
+          if (args.dryrun) {
+            log.info(
+              `dry run: would mark ${issue.number} as ${staleLabel} due to ${responseRequestedLabel} age`
+            );
+          } else {
+            await markStale(client, issue, staleMessage, staleLabel);
+          }
         } else {
           // else ignore it because we need to wait longer before staleing
           log.debug(`${currentTime} is less than ${rrTime}, doing nothing`);
@@ -142,7 +167,13 @@ async function processIssues(client, args) {
           log.debug('issue is ancient but has enough upvotes to exempt');
         } else {
           log.debug('issue is ancient and not enough upvotes; marking stale');
-          await markStale(client, issue, ancientMessage, staleLabel);
+          if (args.dryrun) {
+            log.info(
+              `dry run: would mark ${issue.number} as ${staleLabel} due to last updated age`
+            );
+          } else {
+            await markStale(client, issue, ancientMessage, staleLabel);
+          }
         }
       }
     }
