@@ -5,8 +5,8 @@
   "private": true,
   "main": "entrypoint.js",
   "scripts": {
-    "check-lint": "prettier --list-different src/**.js test/**.js && eslint src/**.js test/**.js",
-    "lint": "prettier --write src/**.js test/**.js && eslint --fix src/**.js test/**.js",
+    "check-lint": "prettier --list-different src/**.js && eslint src/**.js",
+    "lint": "prettier --write src/**.js && eslint --fix src/**.js",
     "test": "jest --coverage"
   },
   "repository": {
