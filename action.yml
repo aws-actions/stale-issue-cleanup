@@ -40,6 +40,8 @@ inputs:
     description: 'The label that gets applied when an issue is closed for staleness'
   minimum-upvotes-to-exempt:
     description: 'The minimum number of "upvotes" that an issue needs to have before not marking as ancient'
+  loglevel:
+    description: 'Set to DEBUG to enable debug logging'
 
 runs:
   using: 'docker'
@@ -60,3 +62,4 @@ runs:
     RESPONSE_REQUESTED_LABEL: ${{ inputs.response-requested-label }}
     CLOSED_FOR_STALENESS_LABEL: ${{ inputs.closed-for-staleness-label }}
     MINIMUM_UPVOTES_TO_EXEMPT: ${{ inputs.minimum-upvotes-to-exempt }}
+    LOGLEVEL: ${{ inputs.loglevel }}
