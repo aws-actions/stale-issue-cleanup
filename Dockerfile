@@ -5,6 +5,6 @@ LABEL "version"="0.1.0"
 
 ADD package.json yarn.lock /
 RUN yarn install --frozen-lockfile
-ADD entrypoint.js /
+COPY src /src/
 
-ENTRYPOINT ["node", "/entrypoint.js"]
+ENTRYPOINT ["node", "/src/entrypoint.js"]
