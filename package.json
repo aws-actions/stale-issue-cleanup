@@ -21,7 +21,7 @@
   "dependencies": {
     "@actions/github": "^2.1.1",
     "chalk": "^3.0.0",
-    "loglevel": "^1.6.7",
+    "loglevel": "^1.6.8",
     "loglevel-plugin-prefix": "^0.8.4"
   },
   "devDependencies": {
