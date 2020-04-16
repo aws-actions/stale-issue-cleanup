@@ -76,7 +76,7 @@ describe('GitHub issue parser', () => {
 
   test('skips issue with empty messages', async () => {
     nock('https://api.github.com')
-      .get('/repos/octocat/Hello-World/issues')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues')
       .query({
         state: 'open',
         labels: process.env.RESPONSE_REQUESTED_LABEL,
@@ -94,7 +94,7 @@ describe('GitHub issue parser', () => {
 
   test('consumes the GitHub API', async () => {
     const scope = nock('https://api.github.com')
-      .get('/repos/octocat/Hello-World/issues')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues')
       .query({
         state: 'open',
         labels: process.env.RESPONSE_REQUESTED_LABEL,
@@ -102,7 +102,7 @@ describe('GitHub issue parser', () => {
       })
       .reply(200, [
         {
-          url: 'https://api.github.com/repos/octocat/Hello-World/issues/256',
+          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/256',
           id: 172115562,
           node_id: 'MDU6SXNzdWUxNzIxMTU1NjI=',
           number: 256,
@@ -112,7 +112,7 @@ describe('GitHub issue parser', () => {
               id: 600797884,
               node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
               url:
-                'https://api.github.com/repos/octocat/Hello-World/labels/go-away-bot',
+                'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/go-away-bot',
               name: 'go-away-bot',
             },
           ],
@@ -125,7 +125,7 @@ describe('GitHub issue parser', () => {
           body: null,
         },
         {
-          url: 'https://api.github.com/repos/octocat/Hello-World/issues/257',
+          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/257',
           id: 172115557,
           node_id: 'MDU6SXNzdWUx7zIxMTU1NjI=',
           number: 257,
@@ -135,14 +135,14 @@ describe('GitHub issue parser', () => {
               id: 600797884,
               node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
               url:
-                'https://api.github.com/repos/octocat/Hello-World/labels/response-requested',
+                'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
               name: 'response-requested',
             },
             {
               id: 600797885,
               node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
               url:
-                'https://api.github.com/repos/octocat/Hello-World/labels/closing-soon',
+                'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/closing-soon',
               name: 'closing-soon',
             },
           ],
@@ -155,7 +155,7 @@ describe('GitHub issue parser', () => {
           body: null,
         },
         {
-          url: 'https://api.github.com/repos/octocat/Hello-World/issues/261',
+          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/261',
           id: 172115561,
           node_id: 'MDU6SXNzd6Ux7zIxMTU1NjI=',
           number: 261,
@@ -165,7 +165,7 @@ describe('GitHub issue parser', () => {
               id: 600797884,
               node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
               url:
-                'https://api.github.com/repos/octocat/Hello-World/labels/response-requested',
+                'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
               name: 'response-requested',
             },
           ],
@@ -182,7 +182,7 @@ describe('GitHub issue parser', () => {
           body: null,
         },
         {
-          url: 'https://api.github.com/repos/octocat/Hello-World/issues/262',
+          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/262',
           id: 179915562,
           node_id: 'MDU62XNzd6Ux7zIxMTU1NjI=',
           number: 262,
@@ -192,7 +192,7 @@ describe('GitHub issue parser', () => {
               id: 600797884,
               node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
               url:
-                'https://api.github.com/repos/octocat/Hello-World/labels/response-requested',
+                'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
               name: 'response-requested',
             },
           ],
@@ -205,7 +205,7 @@ describe('GitHub issue parser', () => {
           body: null,
         },
         {
-          url: 'https://api.github.com/repos/octocat/Hello-World/issues/263',
+          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/263',
           id: 179916362,
           node_id: 'MDU62X63d6Ux7zIxMTU1NjI=',
           number: 263,
@@ -215,7 +215,7 @@ describe('GitHub issue parser', () => {
               id: 600797884,
               node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
               url:
-                'https://api.github.com/repos/octocat/Hello-World/labels/response-requested',
+                'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
               name: 'response-requested',
             },
           ],
@@ -228,7 +228,7 @@ describe('GitHub issue parser', () => {
           body: null,
         },
       ])
-      .get('/repos/octocat/Hello-World/issues')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues')
       .query({
         state: 'open',
         labels: process.env.STALE_ISSUE_LABEL,
@@ -236,7 +236,7 @@ describe('GitHub issue parser', () => {
       })
       .reply(200, [
         {
-          url: 'https://api.github.com/repos/octocat/Hello-World/issues/257',
+          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/257',
           id: 172115557,
           node_id: 'MDU6SXNzdWUx7zIxMTU1NjI=',
           number: 257,
@@ -246,14 +246,14 @@ describe('GitHub issue parser', () => {
               id: 600797884,
               node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
               url:
-                'https://api.github.com/repos/octocat/Hello-World/labels/response-requested',
+                'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
               name: 'response-requested',
             },
             {
               id: 600797885,
               node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
               url:
-                'https://api.github.com/repos/octocat/Hello-World/labels/closing-soon',
+                'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/closing-soon',
               name: 'closing-soon',
             },
           ],
@@ -266,7 +266,7 @@ describe('GitHub issue parser', () => {
           body: null,
         },
         {
-          url: 'https://api.github.com/repos/octocat/Hello-World/issues/258',
+          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/258',
           id: 172115587,
           node_id: 'MD86SXNzdWUx7zIxMTU1NjI=',
           number: 258,
@@ -276,7 +276,7 @@ describe('GitHub issue parser', () => {
               id: 600797885,
               node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
               url:
-                'https://api.github.com/repos/octocat/Hello-World/labels/closing-soon',
+                'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/closing-soon',
               name: 'closing-soon',
             },
           ],
@@ -289,7 +289,7 @@ describe('GitHub issue parser', () => {
           body: null,
         },
         {
-          url: 'https://api.github.com/repos/octocat/Hello-World/issues/259',
+          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/259',
           id: 172115559,
           node_id: 'MD86SXNzdWUx759xMTU1NjI=',
           number: 259,
@@ -299,7 +299,7 @@ describe('GitHub issue parser', () => {
               id: 600797885,
               node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
               url:
-                'https://api.github.com/repos/octocat/Hello-World/labels/closing-soon',
+                'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/closing-soon',
               name: 'closing-soon',
             },
           ],
@@ -312,40 +312,40 @@ describe('GitHub issue parser', () => {
           body: null,
         },
       ])
-      .get('/repos/octocat/Hello-World/issues')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues')
       .query({
         state: 'open',
         labels: process.env.STALE_PR_LABEL,
         per_page: 100,
       })
       .reply(200, [])
-      .delete('/repos/octocat/Hello-World/issues/257/labels/closing-soon')
+      .delete('/repos/aws-actions/stale-issue-cleanup/issues/257/labels/closing-soon')
       .reply(204, {})
-      .delete('/repos/octocat/Hello-World/issues/257/labels/response-requested')
+      .delete('/repos/aws-actions/stale-issue-cleanup/issues/257/labels/response-requested')
       .reply(204, {})
-      .delete('/repos/octocat/Hello-World/issues/258/labels/closing-soon')
+      .delete('/repos/aws-actions/stale-issue-cleanup/issues/258/labels/closing-soon')
       .reply(204, {})
-      .patch('/repos/octocat/Hello-World/issues/258')
+      .patch('/repos/aws-actions/stale-issue-cleanup/issues/258')
       .reply(200, {})
-      .post('/repos/octocat/Hello-World/issues/261/comments', {
+      .post('/repos/aws-actions/stale-issue-cleanup/issues/261/comments', {
         body: 'Stale issue message.',
       })
       .reply(201, {})
-      .post('/repos/octocat/Hello-World/issues/299/comments', {
+      .post('/repos/aws-actions/stale-issue-cleanup/issues/299/comments', {
         body: 'Ancient issue message.',
       })
       .reply(201, {})
-      .post('/repos/octocat/Hello-World/issues/261/labels', {
+      .post('/repos/aws-actions/stale-issue-cleanup/issues/261/labels', {
         labels: ['closing-soon'],
       })
       .reply(201, {})
-      .post('/repos/octocat/Hello-World/issues/299/labels', {
+      .post('/repos/aws-actions/stale-issue-cleanup/issues/299/labels', {
         labels: ['closing-soon'],
       })
       .reply(201, {})
-      .delete('/repos/octocat/Hello-World/issues/262/labels/response-requested')
+      .delete('/repos/aws-actions/stale-issue-cleanup/issues/262/labels/response-requested')
       .reply(204, {})
-      .get('/repos/octocat/Hello-World/issues/256/timeline')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
       .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
       .query({ per_page: 100 })
       .reply(200, [
@@ -353,7 +353,7 @@ describe('GitHub issue parser', () => {
           id: 1073560592,
           node_id: 'MDEyOpxhvmVsZWRFdmVudDEwNzM1NjA1OTE=',
           url:
-            'https://api.github.com/repos/octocat/Hello-World/issues/events/1073560592',
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560592',
           actor: {
             login: 'octocat',
             id: 583231,
@@ -371,7 +371,7 @@ describe('GitHub issue parser', () => {
           },
         },
       ])
-      .get('/repos/octocat/Hello-World/issues/257/timeline')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/257/timeline')
       .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
       .query({ per_page: 100 })
       .reply(200, [
@@ -379,7 +379,7 @@ describe('GitHub issue parser', () => {
           id: 1073560592,
           node_id: 'MDEyOpxhvmVsZWRFdmVudDEwNzM1NjA1OTE=',
           url:
-            'https://api.github.com/repos/octocat/Hello-World/issues/events/1073560592',
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560592',
           actor: {
             login: 'octocat',
             id: 583231,
@@ -400,7 +400,7 @@ describe('GitHub issue parser', () => {
           id: 1073560792,
           node_id: 'MDEyOpxhYmVsZWRFdpVudDEwNzM1NjA1OTE=',
           url:
-            'https://api.github.com/repos/octocat/Hello-World/issues/events/1073560792',
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560792',
           actor: {
             login: 'octocat',
             id: 583231,
@@ -431,7 +431,7 @@ describe('GitHub issue parser', () => {
           created_at: now,
         },
       ])
-      .get('/repos/octocat/Hello-World/issues/258/timeline')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/258/timeline')
       .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
       .query({ per_page: 100 })
       .reply(200, [
@@ -439,7 +439,7 @@ describe('GitHub issue parser', () => {
           id: 1073560592,
           node_id: 'MDEyOpxhvmVsZWRFdmVudDEwNzM1NjA1OTE=',
           url:
-            'https://api.github.com/repos/octocat/Hello-World/issues/events/1073560592',
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560592',
           actor: {
             login: 'octocat',
             id: 583231,
@@ -457,7 +457,7 @@ describe('GitHub issue parser', () => {
           },
         },
       ])
-      .get('/repos/octocat/Hello-World/issues/259/timeline')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/259/timeline')
       .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
       .query({ per_page: 100 })
       .reply(200, [
@@ -465,7 +465,7 @@ describe('GitHub issue parser', () => {
           id: 1073560592,
           node_id: 'MDEyOpxhvmVsZWRFdmVudDEwNzM1NjA1OTE=',
           url:
-            'https://api.github.com/repos/octocat/Hello-World/issues/events/1073560592',
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560592',
           actor: {
             login: 'octocat',
             id: 583231,
@@ -483,7 +483,7 @@ describe('GitHub issue parser', () => {
           },
         },
       ])
-      .get('/repos/octocat/Hello-World/issues/261/timeline')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/261/timeline')
       .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
       .query({ per_page: 100 })
       .reply(200, [
@@ -491,7 +491,7 @@ describe('GitHub issue parser', () => {
           id: 1073560592,
           node_id: 'MDEyOpxhvmVsZWRFdmVudDEwNzM1NjA1OTE=',
           url:
-            'https://api.github.com/repos/octocat/Hello-World/issues/events/1073560592',
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560592',
           actor: {
             login: 'octocat',
             id: 583231,
@@ -511,7 +511,7 @@ describe('GitHub issue parser', () => {
           },
         },
       ])
-      .get('/repos/octocat/Hello-World/issues/262/timeline')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/262/timeline')
       .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
       .query({ per_page: 100 })
       .reply(200, [
@@ -519,7 +519,7 @@ describe('GitHub issue parser', () => {
           id: 1073560592,
           node_id: 'MDEyOpxhvmVsZWRFdmVudDEwNzM1NjA1OTE=',
           url:
-            'https://api.github.com/repos/octocat/Hello-World/issues/events/1073560592',
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560592',
           actor: {
             login: 'octocat',
             id: 583231,
@@ -540,7 +540,7 @@ describe('GitHub issue parser', () => {
           id: 1073560792,
           node_id: 'MDEyOpxhYmVsZWRFdpVudDEwNzM1NjA1OTE=',
           url:
-            'https://api.github.com/repos/octocat/Hello-World/issues/events/1073560792',
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560792',
           actor: {
             login: 'octocat',
             id: 583231,
@@ -571,7 +571,7 @@ describe('GitHub issue parser', () => {
           created_at: now,
         },
       ])
-      .get('/repos/octocat/Hello-World/issues/263/timeline')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/263/timeline')
       .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
       .query({ per_page: 100 })
       .reply(200, [
@@ -579,7 +579,7 @@ describe('GitHub issue parser', () => {
           id: 1073560592,
           node_id: 'MDEyOpxhvmVsZWRFdmVudDEwNzM1NjA1OTE=',
           url:
-            'https://api.github.com/repos/octocat/Hello-World/issues/events/1073560592',
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560592',
           actor: {
             login: 'octocat',
             id: 583231,
@@ -597,11 +597,11 @@ describe('GitHub issue parser', () => {
           },
         },
       ])
-      .get('/repos/octocat/Hello-World/issues/299/timeline')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/299/timeline')
       .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
       .query({ per_page: 100 })
       .reply(200, [])
-      .get('/repos/octocat/Hello-World/issues')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues')
       .query({
         state: 'open',
         since: new Date(
@@ -611,7 +611,7 @@ describe('GitHub issue parser', () => {
       })
       .reply(200, [
         {
-          url: 'https://api.github.com/repos/octocat/Hello-World/issues/299',
+          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299',
           id: 172115599,
           node_id: 'MDU6SXNzdWUxNzIx9TU1NjI=',
           number: 299,
@@ -625,7 +625,7 @@ describe('GitHub issue parser', () => {
           body: null,
         },
       ])
-      .get('/repos/octocat/Hello-World/issues/299/reactions')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/299/reactions')
       .query({ per_page: 100 })
       .reply(200, []);
 
