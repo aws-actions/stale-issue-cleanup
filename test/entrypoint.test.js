@@ -34,6 +34,7 @@ describe('GitHub issue parser', () => {
       repoToken: process.env.REPO_TOKEN,
       ancientIssueMessage: process.env.ANCIENT_ISSUE_MESSAGE,
       ancientPrMessage: process.env.ANCIENT_PR_MESSAGE,
+      dryrun: !!process.env.DRYRUN,
       staleIssueMessage: process.env.STALE_ISSUE_MESSAGE,
       stalePrMessage: process.env.STALE_PR_MESSAGE,
       daysBeforeStale: parseFloat(process.env.DAYS_BEFORE_STALE),
