@@ -1,0 +1,15 @@
+.DS_Store
+.vscode/
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+.npm
+.eslintcache
+.node_repl_history
+.env
+node_modules/
+coverage/

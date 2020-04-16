@@ -1,0 +1,36 @@
+name: "Close stale issues"
+
+# Controls when the action will run.
+on:
+  schedule:
+  - cron: "*/15 * * * *"
+
+jobs:
+  # This workflow contains a single job called "stale"
+  stale:
+    runs-on: ubuntu-latest
+    name: Stale issue job
+    steps:
+    - uses: diehlaws/stalePrivate@v0.41
+      with:
+        # Setting messages to an empty string will cause the automation to skip
+        # that category
+        ancient-issue-message: Ancient issue message
+        stale-issue-message: Stale issue message
+        stale-pr-message: Stale issue message
+        stale-issue-label: closing-soon
+        exempt-issue-label: awaiting-approval
+        stale-pr-label: no-pr-activity
+        exempt-pr-label: awaiting-approval
+        response-requested-label: response-requested,
+        # Don't set closed-for-staleness label to skip
+        closed-for-staleness-label: closed-for-staleness,
+        days-before-stale: 0.04,
+        days-before-close: 0.04,
+        days-before-ancient: 0.05,
+        # If you don't want to mark an issue as being ancient based on a
+        # threshold of "upvotes", you can set this here. An "upvote" is
+        # the total number of +1, heart, hooray, and rocket reactions
+        # on an issue.
+        minimum-upvotes-to-exempt: 1,
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
