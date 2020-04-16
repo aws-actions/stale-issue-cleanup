@@ -102,7 +102,8 @@ describe('GitHub issue parser', () => {
       })
       .reply(200, [
         {
-          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/256',
+          url:
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/256',
           id: 172115562,
           node_id: 'MDU6SXNzdWUxNzIxMTU1NjI=',
           number: 256,
@@ -125,7 +126,8 @@ describe('GitHub issue parser', () => {
           body: null,
         },
         {
-          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/257',
+          url:
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/257',
           id: 172115557,
           node_id: 'MDU6SXNzdWUx7zIxMTU1NjI=',
           number: 257,
@@ -155,7 +157,8 @@ describe('GitHub issue parser', () => {
           body: null,
         },
         {
-          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/261',
+          url:
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/261',
           id: 172115561,
           node_id: 'MDU6SXNzd6Ux7zIxMTU1NjI=',
           number: 261,
@@ -182,7 +185,8 @@ describe('GitHub issue parser', () => {
           body: null,
         },
         {
-          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/262',
+          url:
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/262',
           id: 179915562,
           node_id: 'MDU62XNzd6Ux7zIxMTU1NjI=',
           number: 262,
@@ -205,7 +209,8 @@ describe('GitHub issue parser', () => {
           body: null,
         },
         {
-          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/263',
+          url:
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/263',
           id: 179916362,
           node_id: 'MDU62X63d6Ux7zIxMTU1NjI=',
           number: 263,
@@ -236,7 +241,8 @@ describe('GitHub issue parser', () => {
       })
       .reply(200, [
         {
-          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/257',
+          url:
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/257',
           id: 172115557,
           node_id: 'MDU6SXNzdWUx7zIxMTU1NjI=',
           number: 257,
@@ -266,7 +272,8 @@ describe('GitHub issue parser', () => {
           body: null,
         },
         {
-          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/258',
+          url:
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/258',
           id: 172115587,
           node_id: 'MD86SXNzdWUx7zIxMTU1NjI=',
           number: 258,
@@ -289,7 +296,8 @@ describe('GitHub issue parser', () => {
           body: null,
         },
         {
-          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/259',
+          url:
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/259',
           id: 172115559,
           node_id: 'MD86SXNzdWUx759xMTU1NjI=',
           number: 259,
@@ -319,11 +327,17 @@ describe('GitHub issue parser', () => {
         per_page: 100,
       })
       .reply(200, [])
-      .delete('/repos/aws-actions/stale-issue-cleanup/issues/257/labels/closing-soon')
+      .delete(
+        '/repos/aws-actions/stale-issue-cleanup/issues/257/labels/closing-soon'
+      )
       .reply(204, {})
-      .delete('/repos/aws-actions/stale-issue-cleanup/issues/257/labels/response-requested')
+      .delete(
+        '/repos/aws-actions/stale-issue-cleanup/issues/257/labels/response-requested'
+      )
       .reply(204, {})
-      .delete('/repos/aws-actions/stale-issue-cleanup/issues/258/labels/closing-soon')
+      .delete(
+        '/repos/aws-actions/stale-issue-cleanup/issues/258/labels/closing-soon'
+      )
       .reply(204, {})
       .patch('/repos/aws-actions/stale-issue-cleanup/issues/258')
       .reply(200, {})
@@ -343,7 +357,9 @@ describe('GitHub issue parser', () => {
         labels: ['closing-soon'],
       })
       .reply(201, {})
-      .delete('/repos/aws-actions/stale-issue-cleanup/issues/262/labels/response-requested')
+      .delete(
+        '/repos/aws-actions/stale-issue-cleanup/issues/262/labels/response-requested'
+      )
       .reply(204, {})
       .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
       .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
@@ -611,7 +627,8 @@ describe('GitHub issue parser', () => {
       })
       .reply(200, [
         {
-          url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299',
+          url:
+            'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299',
           id: 172115599,
           node_id: 'MDU6SXNzdWUxNzIx9TU1NjI=',
           number: 299,

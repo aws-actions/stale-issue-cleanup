@@ -89,10 +89,10 @@ module.exports.getTimelineEvents = (client, issue) => {
  * @return {Promise.<Array>} array of unique issues
  */
 module.exports.getIssues = async (client, args) => {
-  const responseIssues = [];
-  const staleIssues = [];
-  const stalePrs = [];
-  const ancientIssues = [];
+  let responseIssues = [];
+  let staleIssues = [];
+  let stalePrs = [];
+  let ancientIssues = [];
 
   let options = client.issues.listForRepo.endpoint.merge({
     owner: github.context.repo.owner,
@@ -101,7 +101,7 @@ module.exports.getIssues = async (client, args) => {
     labels: args.responseRequestedLabel,
     per_page: 100,
   });
-  responseIssues.push(await client.paginate(options));
+  responseIssues = await client.paginate(options);
   log.debug(`found ${responseIssues.length} response-requested issues`);
 
   if (args.staleIssueMessage && args.staleIssueMessage !== '') {
@@ -112,7 +112,7 @@ module.exports.getIssues = async (client, args) => {
       labels: args.staleIssueLabel,
       per_page: 100,
     });
-    staleIssues.push(await client.paginate(options));
+    staleIssues = await client.paginate(options);
     log.debug(`found ${staleIssues.length} stale issues`);
   } else {
     log.debug(`skipping stale issues due to empty message`);
@@ -126,7 +126,7 @@ module.exports.getIssues = async (client, args) => {
       labels: args.stalePrLabel,
       per_page: 100,
     });
-    stalePrs.push(await client.paginate(options));
+    stalePrs = await client.paginate(options);
     log.debug(`found ${stalePrs.length} stale prs`);
   } else {
     log.debug(`skipping stale PRs due to empty message`);
@@ -142,16 +142,24 @@ module.exports.getIssues = async (client, args) => {
       ).toISOString(),
       per_page: 100,
     });
-    ancientIssues.push(await client.paginate(options));
+    ancientIssues = await client.paginate(options);
     log.debug(`found ${ancientIssues.length} ancient issues`);
   } else {
     log.debug(`skipping ancient issues due to empty message`);
   }
 
-  const issues = [...responseIssues, ...staleIssues, ...ancientIssues];
-  return Array.from(new Set(issues.map((a) => a.id))).map((id) => {
-    return issues.find((a) => a.id === id);
-  });
+  const issues = [
+    ...responseIssues,
+    ...staleIssues,
+    ...stalePrs,
+    ...ancientIssues,
+  ];
+  return Object.values(
+    issues.reduce((unique, item) => {
+      unique[`${item.id}`] = item;
+      return unique;
+    }, [])
+  );
 };
 
 /**
