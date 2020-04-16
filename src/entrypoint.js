@@ -150,7 +150,6 @@ async function processIssues(client, args) {
 }
 
 const run = async () => {
-  logSetup();
   try {
     log.info('Starting issue processing');
     const args = getAndValidateInputs();
@@ -171,5 +170,6 @@ module.exports = {
 
 /* istanbul ignore next */
 if (require.main === module) {
+  logSetup();
   run();
 }
