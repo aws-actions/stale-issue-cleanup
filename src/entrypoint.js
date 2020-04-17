@@ -1,4 +1,5 @@
 const { logSetup } = require('./logsetup.js');
+logSetup();
 const log = require('loglevel').getLogger('main');
 const github = require('@actions/github');
 const {
@@ -201,6 +202,5 @@ module.exports = {
 
 /* istanbul ignore next */
 if (require.main === module) {
-  logSetup();
   run();
 }

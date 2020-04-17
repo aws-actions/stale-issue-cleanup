@@ -12,15 +12,19 @@ Add the following step to your workflow.
 
 ```yaml
 name: "Close stale issues"
-uses: aws-actions/stale-issue-cleanup@v1
+uses: aws-actions/stale-issue-cleanup@v2
 with:
     stale-issue-message: Stale issue message
     stale-pr-message: Stale issue message
+    ancient-issue-message: Stale issue message
+    
     stale-issue-label: closing-soon
     exempt-issue-label: awaiting-approval
     stale-pr-label: no-pr-activity
     exempt-pr-label: awaiting-approval
     response-requested-label: response-requested
+    closed-for-staleness-label: closed-for-staleness
+    
     days-before-stale: 4,
     days-before-close: 7,
     repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -29,13 +33,12 @@ with:
 **NOTE:** For stability, you should use the action with either an
 explicit tag, or commit SHA:
 
-`uses = "aws-actions/stale-issue-cleanup@v1"` 
+`uses: aws-actions/stale-issue-cleanup@v2` 
 
-See [sample_workflow.yml](./sample_workflow.yml) for a comprehensive list
-of options and their descriptions.
+Check out [sample_workflow.yml](./sample_workflow.yml) for a complete
+example.
 
 ## License Summary
 
 This code is made available under the Apache-2.0 license.
 See [LICENSE](./LICENSE).
-
