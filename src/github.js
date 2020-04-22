@@ -137,12 +137,16 @@ module.exports.getIssues = async (client, args) => {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       state: 'open',
-      since: new Date(
-        Date.now() - MS_PER_DAY * args.daysBeforeAncient
-      ).toISOString(),
       per_page: 100,
+      sort: 'updated',
+      direction: 'asc',
     });
-    ancientIssues = await client.paginate(options);
+    const ancientResults = await client.paginate(options);
+    ancientIssues = ancientResults.filter(
+      (issue) =>
+        new Date(issue.updated_at) <
+        new Date(Date.now() - MS_PER_DAY * args.daysBeforeAncient)
+    );
     log.debug(`found ${ancientIssues.length} ancient issues`);
   } else {
     log.debug(`skipping ancient issues due to empty message`);
