@@ -205,9 +205,8 @@ describe('GitHub issue parser', () => {
       .get('/repos/aws-actions/stale-issue-cleanup/issues')
       .query({
         state: 'open',
-        since: new Date(
-          Date.now() - 86400000 * process.env.DAYS_BEFORE_ANCIENT
-        ).toISOString(),
+        sort: 'updated',
+        direction: 'asc',
         per_page: 100,
       })
       .reply(200,[{url:"https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299",id:172115599,node_id:"MDU6SXNzdWUxNzIx9TU1NjI=",number:299,title:"Ancient",state:"open",comments:0,created_at:"2016-08-19T11:57:17Z",updated_at:"2017-05-08T21:20:09Z",closed_at:"2016-08-19T12:48:43Z",author_association:"NONE",body:null}])
