@@ -176,6 +176,15 @@ async function processIssues(client, args) {
             await markStale(client, issue, ancientMessage, staleLabel);
           }
         }
+      } else {
+        log.debug('issue is ancient and not enough upvotes; marking stale');
+        if (args.dryrun) {
+          log.info(
+            `dry run: would mark ${issue.number} as ${staleLabel} due to last updated age`
+          );
+        } else {
+          await markStale(client, issue, ancientMessage, staleLabel);
+        }
       }
     }
   });
