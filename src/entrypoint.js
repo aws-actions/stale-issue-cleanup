@@ -98,6 +98,14 @@ async function processIssues(client, args) {
       const sTime = new Date(
         lastCommentTime + MS_PER_DAY * args.daysBeforeClose
       );
+
+      // This happens when we can't determine the time of labeling stale
+      // but GitHub told us it has a stale label on it.
+      if (staleLabelTime === undefined) {
+        log.warn('Skipping this issue');
+        return;
+      }
+
       if (lastCommentTime > staleLabelTime) {
         log.debug('issue was commented on after the label was applied');
         if (args.dryrun) {
