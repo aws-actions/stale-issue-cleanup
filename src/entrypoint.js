@@ -38,11 +38,11 @@ function getAndValidateInputs() {
     exemptPrLabel: process.env.EXEMPT_PR_LABEL,
     responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
     minimumUpvotesToExempt: parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
-    dryrun: !!process.env.DRYRUN,
+    dryrun: (String(process.env.DRYRUN).toLowerCase() === 'true'),
   };
 
   log.debug(process.env);
-  log.debug(`dryrun: ${!!process.env.DRYRUN}`);
+  log.debug(`dryrun: ${!!args.dryrun}`);
   for (const numberInput of [
     args.daysBeforeAncient,
     args.daysBeforeClose,
