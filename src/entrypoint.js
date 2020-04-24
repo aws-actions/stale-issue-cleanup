@@ -93,10 +93,11 @@ async function processIssues(client, args) {
     if (isLabeled(issue, staleLabel)) {
       log.debug(`issue contains the stale label`);
       const lastCommentTime = getLastCommentTime(issueTimelineEvents);
-      const staleLabelTime = getLastLabelTime(issueTimelineEvents, staleLabel);
+      const stLabelTime = getLastLabelTime(issueTimelineEvents, staleLabel);
       const sTime = new Date(
         lastCommentTime + MS_PER_DAY * args.daysBeforeClose
       );
+      const staleLabelTime = stLabelTime === undefined ? sTime : stLabelTime;
       if (lastCommentTime > staleLabelTime) {
         log.debug('issue was commented on after the label was applied');
         if (args.dryrun) {
