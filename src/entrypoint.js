@@ -38,7 +38,7 @@ function getAndValidateInputs() {
     exemptPrLabel: process.env.EXEMPT_PR_LABEL,
     responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
     minimumUpvotesToExempt: parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
-    dryrun: !!process.env.DRYRUN,
+    dryrun: (String(process.env.DRYRUN).toLowerCase() === 'true'),
   };
 
   for (const numberInput of [
@@ -194,6 +194,7 @@ const run = async () => {
   try {
     log.info('Starting issue processing');
     const args = getAndValidateInputs();
+    log.debug(args);
     const client = new github.GitHub(args.repoToken);
     await processIssues(client, args);
     log.info('Labelled issue processing complete');
