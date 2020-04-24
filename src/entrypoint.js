@@ -196,6 +196,7 @@ const run = async () => {
   try {
     log.info('Starting issue processing');
     const args = getAndValidateInputs();
+    log.debug(args);
     const client = new github.GitHub(args.repoToken);
     await processIssues(client, args);
     log.info('Labelled issue processing complete');
