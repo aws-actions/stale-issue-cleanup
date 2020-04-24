@@ -45,7 +45,7 @@ Here's an abbreviated example with just the step for this action:
 
 ```yaml
 steps:
-- uses: aws-actions/stale-issue-cleanup@v2
+- uses: aws-actions/stale-issue-cleanup@v3
   with:
     # Messages this action will apply to issues
     stale-issue-message: Stale issue message
@@ -77,7 +77,7 @@ steps:
 **NOTE:** For stability, you should use the action with either an
 explicit tag, or commit SHA:
 
-`uses: aws-actions/stale-issue-cleanup@v2` 
+`uses: aws-actions/stale-issue-cleanup@v3` 
 
 ## License Summary
 

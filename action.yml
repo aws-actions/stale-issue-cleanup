@@ -62,7 +62,7 @@ runs:
     STALE_PR_LABEL: ${{ inputs.stale-pr-label }}
     EXEMPT_PR_LABEL: ${{ inputs.exempt-pr-label }}
     RESPONSE_REQUESTED_LABEL: ${{ inputs.response-requested-label }}
-    CLOSED_FOR_STALENESS_LABEL: ${{ inputs.closed-for-staleness-label }}
+    CFS_LABEL: ${{ inputs.closed-for-staleness-label }}
     MINIMUM_UPVOTES_TO_EXEMPT: ${{ inputs.minimum-upvotes-to-exempt }}
     LOGLEVEL: ${{ inputs.loglevel }}
     DRYRUN: ${{ inputs.dry-run }}
