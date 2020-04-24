@@ -38,7 +38,7 @@ function getAndValidateInputs() {
     exemptPrLabel: process.env.EXEMPT_PR_LABEL,
     responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
     minimumUpvotesToExempt: parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
-    dryrun: (String(process.env.DRYRUN).toLowerCase() === 'true'),
+    dryrun: String(process.env.DRYRUN).toLowerCase() === 'true',
   };
 
   for (const numberInput of [
@@ -69,9 +69,12 @@ async function processIssues(client, args) {
     const isPr = 'pull_request' in issue ? true : false;
 
     const staleMessage = isPr ? args.stalePrMessage : args.staleIssueMessage;
+    /*
     const ancientMessage = isPr
       ? args.ancientPrMessage
       : args.ancientIssueMessage;
+    */
+    const ancientMessage = args.ancientIssueMessage;
 
     const staleLabel = isPr ? args.stalePrLabel : args.staleIssueLabel;
     const exemptLabel = isPr ? args.exemptPrLabel : args.exemptIssueLabel;
