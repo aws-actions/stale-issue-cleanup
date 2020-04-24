@@ -100,7 +100,7 @@ async function processIssues(client, args) {
 
       // This happens when we can't determine the time of labeling stale
       // but GitHub told us it has a stale label on it.
-      if (stLabelTime === undefined) {
+      if (staleLabelTime === undefined) {
         log.warn('Skipping this issue');
         return;
       }
