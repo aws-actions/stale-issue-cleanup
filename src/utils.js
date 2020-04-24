@@ -56,7 +56,6 @@ module.exports.getLastLabelTime = (events, label) => {
     log.warn(
       `Could not find a ${label} label event in this issue's timeline. Was this label renamed?`
     );
-    log.warn('Skipping over this issue');
     return undefined;
   }
 };
