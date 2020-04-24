@@ -41,6 +41,8 @@ function getAndValidateInputs() {
     dryrun: !!process.env.DRYRUN,
   };
 
+  log.debug(process.env);
+  log.debug(`dryrun: ${!!process.env.DRYRUN}`);
   for (const numberInput of [
     args.daysBeforeAncient,
     args.daysBeforeClose,
