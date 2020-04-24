@@ -49,8 +49,16 @@ module.exports.getLastLabelTime = (events, label) => {
   const searchLabelEvents = labelEvents.filter((event) => {
     return event.label.name === label;
   });
-  searchLabelEvents.sort(revCompareEventsByDate);
-  return Date.parse(searchLabelEvents[0].created_at);
+  if (searchLabelEvents.length > 0) {
+    searchLabelEvents.sort(revCompareEventsByDate);
+    return Date.parse(searchLabelEvents[0].created_at);
+  } else {
+    log.warn(
+      `Could not find a ${label} label event in this issue's timeline. Was this issue renamed?`
+    );
+    log.warn('Defaulting the label time to now so we skip over this issue');
+    return new Date(Date.now());
+  }
 };
 
 /**
