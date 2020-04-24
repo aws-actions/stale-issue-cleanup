@@ -25,8 +25,7 @@ jobs:
         exempt-pr-label: awaiting-approval
         response-requested-label: response-requested
 
-        # Don't set closed-for-staleness label to skip closing very old issues
-        # regardless of label
+        # Don't set this to not apply a label when closing issues
         closed-for-staleness-label: closed-for-staleness
 
         # Issue timing

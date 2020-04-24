@@ -36,6 +36,7 @@ function getAndValidateInputs() {
     exemptIssueLabel: process.env.EXEMPT_ISSUE_LABEL,
     stalePrLabel: process.env.STALE_PR_LABEL,
     exemptPrLabel: process.env.EXEMPT_PR_LABEL,
+    cfsLabel: process.env.CFS_LABEL,
     responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
     minimumUpvotesToExempt: parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
     dryrun: String(process.env.DRYRUN).toLowerCase() === 'true',
@@ -116,7 +117,7 @@ async function processIssues(client, args) {
             );
           } else {
             await removeLabel(client, issue, staleLabel);
-            await closeIssue(client, issue);
+            await closeIssue(client, issue, args.cfsLabel);
           }
         } else {
           // else ignore it because we need to wait longer before closing

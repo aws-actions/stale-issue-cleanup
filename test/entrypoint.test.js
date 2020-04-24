@@ -46,6 +46,7 @@ describe('GitHub issue parser', () => {
       exemptPrLabel: process.env.EXEMPT_PR_LABEL,
       responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
       minimumUpvotesToExempt: parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
+      cfsLabel: process.env.CFS_LABEL,
     });
   });
 
@@ -150,6 +151,11 @@ describe('GitHub issue parser', () => {
 
       .post('/repos/aws-actions/stale-issue-cleanup/issues/261/labels', {
         labels: ['closing-soon'],
+      })
+      .reply(201, {})
+
+      .post('/repos/aws-actions/stale-issue-cleanup/issues/258/labels', {
+        labels: ['closed-for-staleness'],
       })
       .reply(201, {})
 
