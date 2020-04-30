@@ -141,7 +141,7 @@ async function processIssues(client, args) {
       const rrTime = new Date(
         lastUpdateTme + MS_PER_DAY * args.daysBeforeStale
       );
-      if (lastUpdateTme > rrLabelTime) {
+      if (lastCommentTime > rrLabelTime) {
         log.debug(`issue was commented on after the label was applied`);
         if (args.dryrun) {
           log.info(
