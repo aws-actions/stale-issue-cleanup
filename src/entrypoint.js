@@ -133,13 +133,14 @@ async function processIssues(client, args) {
         }
       }
     } else if (isLabeled(issue, responseRequestedLabel)) {
-      const lastUpdateTme = Date.parse(issue.updated_at);
+      const lastCommentTime = getLastCommentTime(issueTimelineEvents);
+      // const lastUpdateTme = Date.parse(issue.updated_at);
       const rrLabelTime = getLastLabelTime(
         issueTimelineEvents,
         responseRequestedLabel
       );
       const rrTime = new Date(
-        lastUpdateTme + MS_PER_DAY * args.daysBeforeStale
+        lastCommentTime + MS_PER_DAY * args.daysBeforeStale
       );
       if (lastCommentTime > rrLabelTime) {
         log.debug(`issue was commented on after the label was applied`);
