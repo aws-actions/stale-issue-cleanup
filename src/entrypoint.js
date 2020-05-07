@@ -114,7 +114,9 @@ async function processIssues(client, args) {
           );
         } else {
           await removeLabel(client, issue, staleLabel);
-          await removeLabel(client, issue, responseRequestedLabel);
+          if (isLabeled(issue, responseRequestedLabel)) {
+            await removeLabel(client, issue, responseRequestedLabel);
+          }
         }
       } else {
         if (currentTime > sTime) {
