@@ -10,7 +10,7 @@ const MS_PER_DAY = 86400000;
  * @param {string} cfsLabel The closing-for-staleness label
  */
 module.exports.closeIssue = async (client, issue, cfsLabel) => {
-  log.debug(`closing issue ${issue.title} for staleness`);
+  log.debug(`closing issue #${issue.number} for staleness`);
   if (cfsLabel && cfsLabel !== '') {
     await client.issues.addLabels({
       owner: github.context.repo.owner,
@@ -34,7 +34,7 @@ module.exports.closeIssue = async (client, issue, cfsLabel) => {
  * @param {string} label
  */
 module.exports.removeLabel = async (client, issue, label) => {
-  log.debug(`removing label from ${issue.title}`);
+  log.debug(`removing label ${label} from #${issue.number}`);
   await client.issues.removeLabel({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
@@ -51,7 +51,7 @@ module.exports.removeLabel = async (client, issue, label) => {
  * @param {string} staleLabel
  */
 module.exports.markStale = async (client, issue, staleMessage, staleLabel) => {
-  log.debug(`marking issue ${issue.title} stale`);
+  log.debug(`marking issue #${issue.number} as stale`);
   await client.issues.createComment({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,

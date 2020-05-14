@@ -1,5 +1,7 @@
 const log = require('loglevel').getLogger('utils');
 
+const dateFormat = require('dateformat');
+
 /**
  * Determines if an issue is labelled with the given label
  * @param {object} issue An issue object
@@ -12,11 +14,11 @@ module.exports.isLabeled = (issue, label) => {
     if (foundone) {
       log.debug(`issue has label ${label}`);
     } else {
-      log.debug(`issue doesn't have ${label}`);
+      log.debug(`issue doesn't have label ${label}`);
     }
     return foundone;
   } else {
-    log.debug(`no labels detail in ${issue.number}`);
+    log.debug(`no labels detail in #${issue.number}`);
     return false;
   }
 };
@@ -69,7 +71,7 @@ module.exports.getLastLabelTime = (events, label) => {
 module.exports.getLastCommentTime = (events) => {
   const commentEvents = events.filter((event) => event.event === 'commented');
   if (commentEvents.length > 0) {
-    log.debug(`issue has some comments`);
+    log.debug(`issue has comments`);
     commentEvents.sort(revCompareEventsByDate);
     log.debug(`newest event is ${commentEvents[0].created_at}`);
     return Date.parse(commentEvents[0].created_at);
@@ -91,4 +93,14 @@ module.exports.asyncForEach = async (array, callback) => {
   for (let index = 0; index < array.length; index++) {
     await callback(array[index], index, array);
   }
+};
+
+/**
+ * Returns a formatted version of `dateTime` in UTC 
+ * format (yyyy-mm-dd'T'HH:MM:ss'Z')
+ * @param {(Date|String|number)} dateTime
+ * @return {String} `dateTime` formatted in UTC format
+ */
+module.exports.dateFormatToIsoUtc = (dateTime) => {
+  return dateFormat(dateTime, "isoUtcDateTime");
 };
