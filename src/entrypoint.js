@@ -15,6 +15,7 @@ const {
   getLastLabelTime,
   getLastCommentTime,
   asyncForEach,
+  dateFormatToIsoUtc,
 } = require('./utils.js');
 
 const MS_PER_DAY = 86400000;
@@ -66,7 +67,9 @@ async function processIssues(client, args) {
   const uniqueIssues = await getIssues(client, args);
 
   await asyncForEach(uniqueIssues, async (issue) => {
-    log.debug(`found issue ${issue.title} last updated ${issue.updated_at}`);
+    log.debug(`==================================================`);
+    log.debug(`ISSUE #${issue.number}: ${issue.title}`);
+    log.debug(`last updated ${issue.updated_at}`);
     const isPr = 'pull_request' in issue ? true : false;
 
     const staleMessage = isPr ? args.stalePrMessage : args.staleIssueMessage;
@@ -85,7 +88,6 @@ async function processIssues(client, args) {
 
     const issueTimelineEvents = await getTimelineEvents(client, issue);
     const currentTime = new Date(Date.now());
-
     if (exemptLabel && isLabeled(issue, exemptLabel)) {
       // If issue contains exempt label, do nothing
       log.debug(`issue contains exempt label`);
@@ -110,7 +112,7 @@ async function processIssues(client, args) {
         log.debug('issue was commented on after the label was applied');
         if (args.dryrun) {
           log.info(
-            `dry run: would remove ${staleLabel} and ${responseRequestedLabel} labels for ${issue.number}`
+            `dry run: would remove ${staleLabel} and ${responseRequestedLabel} labels for #${issue.number}`
           );
         } else {
           await removeLabel(client, issue, staleLabel);
@@ -123,7 +125,7 @@ async function processIssues(client, args) {
           log.debug(`time expired on this issue, need to close it`);
           if (args.dryrun) {
             log.info(
-              `dry run: would remove ${staleLabel} for ${issue.number} and close`
+              `dry run: would remove ${staleLabel} for #${issue.number} and close`
             );
           } else {
             await removeLabel(client, issue, staleLabel);
@@ -131,7 +133,7 @@ async function processIssues(client, args) {
           }
         } else {
           // else ignore it because we need to wait longer before closing
-          log.debug(`${currentTime} is less than ${sTime}, doing nothing`);
+          log.debug(`${dateFormatToIsoUtc(currentTime)} is less than ${dateFormatToIsoUtc(sTime)}, doing nothing`);
         }
       }
     } else if (isLabeled(issue, responseRequestedLabel)) {
@@ -148,7 +150,7 @@ async function processIssues(client, args) {
         log.debug(`issue was commented on after the label was applied`);
         if (args.dryrun) {
           log.info(
-            `dry run: would remove ${responseRequestedLabel} from ${issue.number}`
+            `dry run: would remove ${responseRequestedLabel} from #${issue.number}`
           );
         } else {
           await removeLabel(client, issue, responseRequestedLabel);
@@ -158,14 +160,14 @@ async function processIssues(client, args) {
           log.debug(`time expired on this issue, need to label it stale`);
           if (args.dryrun) {
             log.info(
-              `dry run: would mark ${issue.number} as ${staleLabel} due to ${responseRequestedLabel} age`
+              `dry run: would mark #${issue.number} as ${staleLabel} due to ${responseRequestedLabel} age`
             );
           } else {
             await markStale(client, issue, staleMessage, staleLabel);
           }
         } else {
           // else ignore it because we need to wait longer before staleing
-          log.debug(`${currentTime} is less than ${rrTime}, doing nothing`);
+          log.debug(`${dateFormatToIsoUtc(currentTime)} is less than ${dateFormatToIsoUtc(rrTime)}, doing nothing`);
         }
       }
     } else if (
@@ -185,7 +187,7 @@ async function processIssues(client, args) {
           log.debug('issue is ancient and not enough upvotes; marking stale');
           if (args.dryrun) {
             log.info(
-              `dry run: would mark ${issue.number} as ${staleLabel} due to last updated age`
+              `dry run: would mark #${issue.number} as ${staleLabel} due to last updated age`
             );
           } else {
             await markStale(client, issue, ancientMessage, staleLabel);
@@ -195,7 +197,7 @@ async function processIssues(client, args) {
         log.debug('issue is ancient and not enough upvotes; marking stale');
         if (args.dryrun) {
           log.info(
-            `dry run: would mark ${issue.number} as ${staleLabel} due to last updated age`
+            `dry run: would mark #${issue.number} as ${staleLabel} due to last updated age`
           );
         } else {
           await markStale(client, issue, ancientMessage, staleLabel);

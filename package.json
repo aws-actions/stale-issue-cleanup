@@ -22,7 +22,8 @@
     "@actions/github": "^2.1.1",
     "chalk": "^4.0.0",
     "loglevel": "^1.6.8",
-    "loglevel-plugin-prefix": "^0.8.4"
+    "loglevel-plugin-prefix": "^0.8.4",
+    "dateformat": "^3.0.3"
   },
   "devDependencies": {
     "dotenv": "^8.2.0",
