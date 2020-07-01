@@ -20,7 +20,7 @@
   "homepage": "https://github.com/aws-actions/stale-issue-cleanup/#readme",
   "dependencies": {
     "@actions/github": "^2.2.0",
-    "chalk": "^4.0.0",
+    "chalk": "^4.1.0",
     "loglevel": "^1.6.8",
     "loglevel-plugin-prefix": "^0.8.4",
     "dateformat": "^3.0.3"
