@@ -41,6 +41,8 @@ This workflow file [follows the standard workflow syntax for Github Actions.](ht
 
 A sample workflow file for you to use as a drop-in is in [sample_workflow.yml](./sample_workflow.yml).
 
+For a list of options and their description, see [action.yml](./action.yml).
+
 Here's an abbreviated example with just the step for this action:
 
 ```yaml
@@ -54,9 +56,9 @@ steps:
     
     # Labels this action will apply to issues
     stale-issue-label: closing-soon
-    exempt-issue-label: awaiting-approval
+    exempt-issue-labels: awaiting-approval
     stale-pr-label: no-pr-activity
-    exempt-pr-label: awaiting-approval
+    exempt-pr-labels: awaiting-approval
     response-requested-label: response-requested
     closed-for-staleness-label: closed-for-staleness
     

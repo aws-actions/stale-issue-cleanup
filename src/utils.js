@@ -104,3 +104,14 @@ module.exports.asyncForEach = async (array, callback) => {
 module.exports.dateFormatToIsoUtc = (dateTime) => {
   return dateFormat(dateTime, "isoUtcDateTime");
 };
+
+/**
+ * Splits a string `s` into an array of substrings, using
+ * a comma as a separator
+ * @param {String} s
+ * @return {Array} Array of strings
+ */
+module.exports.parseCommaSeparatedString = (s) => {
+  if (!s.length) return [];
+  return s.split(',').map(l => l.trim());
+};
