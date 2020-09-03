@@ -16,6 +16,7 @@ const {
   getLastCommentTime,
   asyncForEach,
   dateFormatToIsoUtc,
+  parseCommaSeparatedString,
 } = require('./utils.js');
 
 const MS_PER_DAY = 86400000;
@@ -34,9 +35,9 @@ function getAndValidateInputs() {
     daysBeforeClose: parseFloat(process.env.DAYS_BEFORE_CLOSE),
     daysBeforeAncient: parseFloat(process.env.DAYS_BEFORE_ANCIENT),
     staleIssueLabel: process.env.STALE_ISSUE_LABEL,
-    exemptIssueLabel: process.env.EXEMPT_ISSUE_LABEL,
+    exemptIssueLabels: process.env.EXEMPT_ISSUE_LABELS,
     stalePrLabel: process.env.STALE_PR_LABEL,
-    exemptPrLabel: process.env.EXEMPT_PR_LABEL,
+    exemptPrLabels: process.env.EXEMPT_PR_LABELS,
     cfsLabel: process.env.CFS_LABEL,
     responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
     minimumUpvotesToExempt: parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
@@ -81,18 +82,20 @@ async function processIssues(client, args) {
     const ancientMessage = args.ancientIssueMessage;
 
     const staleLabel = isPr ? args.stalePrLabel : args.staleIssueLabel;
-    const exemptLabel = isPr ? args.exemptPrLabel : args.exemptIssueLabel;
-    const responseRequestedLabel = isPr
-      ? args.responseRequestedLabel
-      : args.responseRequestedLabel;
+    const exemptLabels = parseCommaSeparatedString(isPr ? args.exemptPrLabels : args.exemptIssueLabels);
+    const responseRequestedLabel = isPr ? args.responseRequestedLabel : args.responseRequestedLabel;
 
     const issueTimelineEvents = await getTimelineEvents(client, issue);
     const currentTime = new Date(Date.now());
-    if (exemptLabel && isLabeled(issue, exemptLabel)) {
-      // If issue contains exempt label, do nothing
-      log.debug(`issue contains exempt label`);
-      return;
+    
+    if (exemptLabels && 
+      exemptLabels.some((s) => isLabeled(issue, s))
+      ) {
+        // If issue contains exempt label, do nothing
+        log.debug(`issue contains exempt label`);
+        return;
     }
+
     if (isLabeled(issue, staleLabel)) {
       log.debug(`issue contains the stale label`);
       const lastCommentTime = getLastCommentTime(issueTimelineEvents);

@@ -41,9 +41,9 @@ describe('GitHub issue parser', () => {
       daysBeforeClose: parseFloat(process.env.DAYS_BEFORE_CLOSE),
       daysBeforeAncient: parseFloat(process.env.DAYS_BEFORE_ANCIENT),
       staleIssueLabel: process.env.STALE_ISSUE_LABEL,
-      exemptIssueLabel: process.env.EXEMPT_ISSUE_LABEL,
+      exemptIssueLabels: process.env.EXEMPT_ISSUE_LABELS,
       stalePrLabel: process.env.STALE_PR_LABEL,
-      exemptPrLabel: process.env.EXEMPT_PR_LABEL,
+      exemptPrLabels: process.env.EXEMPT_PR_LABELS,
       responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
       minimumUpvotesToExempt: parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
       cfsLabel: process.env.CFS_LABEL,
@@ -534,4 +534,303 @@ describe('GitHub issue parser', () => {
 
     expect(scope.isDone()).toEqual(true);
   });
+
+
+  describe('Exempt Labels Input', () => {
+    const scope = nock('https://api.github.com')
+
+    const issue256Reply = {
+      url:"https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/256",
+      id:172115562,
+      node_id:"MDU6SXNzdWUxNzIxMTU1NjI=",
+      number:256,
+      title:"Exempt?",
+      labels:[{
+        id:600797884,
+        node_id:"MDU6TGFiZWw2MDA3OTc4ODQ=",
+        url:"https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/go-away-bot",
+        name:"go-away-bot"}],
+      state:"open",
+      comments:0,
+      created_at:"2016-08-19T11:57:17Z",
+      updated_at:"2017-05-08T21:20:09Z",
+      closed_at:"2016-08-19T12:48:43Z",
+      author_association:"NONE",
+      body:null
+    }
+
+    const issue121Reply = {
+      url:"https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/121",
+      id:677599418,
+      node_id:"MDU6SXNzdWU2Nzc1OTk0MTg=",
+      number:121,
+      title:"Exempt too?",
+      labels:[{
+        id:743820433,
+        node_id:"MDU6TGFiZWw3NDM4MjA0Mw=",
+        url:"https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/help-wanted",
+        name:"help-wanted"}],
+      state:"open",
+      comments:0,
+      created_at:"2018-08-12T11:03:19Z",
+      updated_at:"2018-08-15T11:07:32Z",
+      closed_at:null,
+      author_association:"NONE",
+      body:null
+    }
+
+    const issue256Timeline = [{
+      id:1073560592,
+      node_id:"MDEyOpxhvmVsZWRFdmVudDEwNzM1NjA1OTE=",
+      url:"https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560592",
+      actor:{login:"octocat",id:583231,node_id:"MDQ6VXNlcjU4MzIzMQ==",type:"User",site_admin:!1},
+      event:"labeled",
+      commit_id:null,
+      commit_url:null,
+      created_at:"2016-08-19T11:57:18Z",
+      label:{name:"go-away-bot",color:"c5def5"}
+    }]
+
+    const issue121Timeline = [{
+      id:3647155910,
+      node_id:"MDEyOkxhYmVsZWRFdmVudDM2NDcxNTU5MTA=",
+      url:"https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/3647155910",
+      actor:{login:"octocat",id:583231,node_id:"MDQ6VXNlcjU4MzIzMQ==",type:"User",site_admin:!1},
+      event:"labeled",
+      commit_id:null,
+      commit_url:null,
+      created_at:"2016-08-19T11:57:18Z",
+      label:{name:"help-wanted",color:"008672"}
+    }]
+
+    beforeEach(() => {
+      scope
+        .get('/repos/aws-actions/stale-issue-cleanup/issues')
+        .query({
+          state: 'open',
+          labels: process.env.RESPONSE_REQUESTED_LABEL,
+          per_page: 100,
+        })
+        .reply(200, [])
+
+        .get('/repos/aws-actions/stale-issue-cleanup/issues')
+        .query({
+          state: 'open',
+          labels: process.env.STALE_ISSUE_LABEL,
+          per_page: 100,
+        })
+        .reply(200, [])
+
+        .get('/repos/aws-actions/stale-issue-cleanup/issues')
+        .query({
+          state: 'open',
+          labels: process.env.STALE_PR_LABEL,
+          per_page: 100,
+        })
+        .reply(200, [])
+
+        .get('/repos/aws-actions/stale-issue-cleanup/issues')
+        .query({
+          state: 'open',
+          sort: 'updated',
+          direction: 'asc',
+          per_page: 100,
+        })
+        .reply(200,[issue256Reply,issue121Reply])
+
+        
+    });
+
+    afterEach(() => {
+      if (!nock.isDone()) {
+        nock.cleanAll();
+      }
+    });
+
+    test('no exempt label', async () => {
+      process.env.EXEMPT_ISSUE_LABELS = '';
+
+      scope
+        .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
+        .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+        .query({ per_page: 100 })
+        .reply(200, issue256Timeline)
+
+        .get('/repos/aws-actions/stale-issue-cleanup/issues/256/reactions')
+        .query({ per_page: 100 })
+        .reply(200, [])
+
+        .post('/repos/aws-actions/stale-issue-cleanup/issues/256/comments', {
+          body: 'Ancient issue message.',
+        })
+        .reply(201, {})
+
+        .post('/repos/aws-actions/stale-issue-cleanup/issues/256/labels', {
+          labels: ['closing-soon'],
+        })
+        .reply(201, {})
+
+        .get('/repos/aws-actions/stale-issue-cleanup/issues/121/timeline')
+        .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+        .query({ per_page: 100 })
+        .reply(200, issue121Timeline)
+
+        .get('/repos/aws-actions/stale-issue-cleanup/issues/121/reactions')
+        .query({ per_page: 100 })
+        .reply(200, [])
+
+        .post('/repos/aws-actions/stale-issue-cleanup/issues/121/comments', {
+          body: 'Ancient issue message.',
+        })
+        .reply(201, {})
+
+        .post('/repos/aws-actions/stale-issue-cleanup/issues/121/labels', {
+          labels: ['closing-soon'],
+        })
+        .reply(201, {})
+
+      await run();
+
+      expect(scope.isDone()).toEqual(true);
+
+    });
+
+    test('one exempt label, but no issue has it', async () => {
+      process.env.EXEMPT_ISSUE_LABELS = 'no-auto-closure-please';
+
+      scope
+        .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
+        .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+        .query({ per_page: 100 })
+        .reply(200, issue256Timeline)
+
+        .get('/repos/aws-actions/stale-issue-cleanup/issues/256/reactions')
+        .query({ per_page: 100 })
+        .reply(200, [])
+
+        .post('/repos/aws-actions/stale-issue-cleanup/issues/256/comments', {
+          body: 'Ancient issue message.',
+        })
+        .reply(201, {})
+
+        .post('/repos/aws-actions/stale-issue-cleanup/issues/256/labels', {
+          labels: ['closing-soon'],
+        })
+        .reply(201, {})
+
+        .get('/repos/aws-actions/stale-issue-cleanup/issues/121/timeline')
+        .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+        .query({ per_page: 100 })
+        .reply(200, issue121Timeline)
+
+        .get('/repos/aws-actions/stale-issue-cleanup/issues/121/reactions')
+        .query({ per_page: 100 })
+        .reply(200, [])
+
+        .post('/repos/aws-actions/stale-issue-cleanup/issues/121/comments', {
+          body: 'Ancient issue message.',
+        })
+        .reply(201, {})
+
+        .post('/repos/aws-actions/stale-issue-cleanup/issues/121/labels', {
+          labels: ['closing-soon'],
+        })
+        .reply(201, {})
+
+      await run();
+
+      expect(scope.isDone()).toEqual(true);
+
+    });
+
+    test('one exempt label, one issue has it', async () => {
+      process.env.EXEMPT_ISSUE_LABELS = 'go-away-bot';
+
+      scope
+        .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
+        .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+        .query({ per_page: 100 })
+        .reply(200, issue256Timeline)
+
+        .get('/repos/aws-actions/stale-issue-cleanup/issues/121/timeline')
+        .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+        .query({ per_page: 100 })
+        .reply(200, issue121Timeline)
+
+        .get('/repos/aws-actions/stale-issue-cleanup/issues/121/reactions')
+        .query({ per_page: 100 })
+        .reply(200, [])
+
+        .post('/repos/aws-actions/stale-issue-cleanup/issues/121/comments', {
+          body: 'Ancient issue message.',
+        })
+        .reply(201, {})
+
+        .post('/repos/aws-actions/stale-issue-cleanup/issues/121/labels', {
+          labels: ['closing-soon'],
+        })
+        .reply(201, {})
+
+      await run();
+
+      expect(scope.isDone()).toEqual(true);
+
+    });
+
+    test('two exempt labels, one issue has one of the labels', async () => {
+      process.env.EXEMPT_ISSUE_LABELS = 'go-away-bot, bot-stay-away';
+
+      scope
+        .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
+        .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+        .query({ per_page: 100 })
+        .reply(200, issue256Timeline)
+
+        .get('/repos/aws-actions/stale-issue-cleanup/issues/121/timeline')
+        .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+        .query({ per_page: 100 })
+        .reply(200, issue121Timeline)
+
+        .get('/repos/aws-actions/stale-issue-cleanup/issues/121/reactions')
+        .query({ per_page: 100 })
+        .reply(200, [])
+
+        .post('/repos/aws-actions/stale-issue-cleanup/issues/121/comments', {
+          body: 'Ancient issue message.',
+        })
+        .reply(201, {})
+
+        .post('/repos/aws-actions/stale-issue-cleanup/issues/121/labels', {
+          labels: ['closing-soon'],
+        })
+        .reply(201, {})
+
+      await run();
+
+      expect(scope.isDone()).toEqual(true);
+
+    });
+
+    test('two exempt labels, two issues have one label each', async () => {
+      process.env.EXEMPT_ISSUE_LABELS = 'help-wanted, go-away-bot';
+
+      scope
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
+        .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+        .query({ per_page: 100 })
+        .reply(200, issue256Timeline)
+
+        .get('/repos/aws-actions/stale-issue-cleanup/issues/121/timeline')
+        .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+        .query({ per_page: 100 })
+        .reply(200, issue121Timeline)
+
+      await run();
+
+      expect(scope.isDone()).toEqual(true);
+
+    });
+
+  });
+
 });
