@@ -7,6 +7,9 @@ inputs:
   repo-token:
     description: 'Token for the repository. Can be passed in using {{ secrets.GITHUB_TOKEN }}'
     required: true
+  issue-types:
+    description: 'Issue types to process ("issues", "pull_requests", or "issues,pull_requests")'
+    default: 'issues,pull_requests'
   stale-issue-message:
     description: 'The message to post on the issue when tagging it. If none provided, will not mark issues stale.'
   stale-pr-message:
@@ -50,6 +53,7 @@ runs:
   image: 'Dockerfile'
   env:
     REPO_TOKEN: ${{ inputs.repo-token }}
+    ISSUE_TYPES: ${{ inputs.issue-types }}
     ANCIENT_ISSUE_MESSAGE: ${{ inputs.ancient-issue-message }}
     ANCIENT_PR_MESSAGE: ${{ inputs.ancient-pr-message }}
     STALE_ISSUE_MESSAGE: ${{ inputs.stale-issue-message }}

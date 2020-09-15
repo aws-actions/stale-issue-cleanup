@@ -49,11 +49,14 @@ Here's an abbreviated example with just the step for this action:
 steps:
 - uses: aws-actions/stale-issue-cleanup@v3
   with:
+    # Types of issues that will be processed
+    issue-types: issues,pull_requests
+
     # Messages this action will apply to issues
     stale-issue-message: Stale issue message
     stale-pr-message: Stale issue message
     ancient-issue-message: Stale issue message
-    
+
     # Labels this action will apply to issues
     stale-issue-label: closing-soon
     exempt-issue-labels: awaiting-approval
@@ -61,7 +64,7 @@ steps:
     exempt-pr-labels: awaiting-approval
     response-requested-label: response-requested
     closed-for-staleness-label: closed-for-staleness
-    
+
     # Issue timing and upvote counting
     days-before-stale: 4
     days-before-close: 7

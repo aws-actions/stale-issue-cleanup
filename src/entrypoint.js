@@ -39,6 +39,7 @@ function getAndValidateInputs() {
     stalePrLabel: process.env.STALE_PR_LABEL,
     exemptPrLabels: process.env.EXEMPT_PR_LABELS,
     cfsLabel: process.env.CFS_LABEL,
+    issueTypes: process.env.ISSUE_TYPES.split(","),
     responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
     minimumUpvotesToExempt: parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
     dryrun: String(process.env.DRYRUN).toLowerCase() === 'true',
@@ -72,6 +73,21 @@ async function processIssues(client, args) {
     log.debug(`ISSUE #${issue.number}: ${issue.title}`);
     log.debug(`last updated ${issue.updated_at}`);
     const isPr = 'pull_request' in issue ? true : false;
+    const skip_pull_requests = args.issueTypes.indexOf(`pull_requests`) == -1;
+    const skip_issues = args.issueTypes.indexOf(`issues`) == -1
+
+    if (isPr && skip_pull_requests) {
+      // If record is a pull request but pull requests weren't configured
+      log.debug(`Issue is a pull request, which are excluded`);
+      return;
+    }
+
+    if ((!isPr) && skip_issues) {
+      // If record is an issue but issues weren't configured
+      log.debug(`Issue is an issue, which are excluded`);
+      return;
+    }
+
 
     const staleMessage = isPr ? args.stalePrMessage : args.staleIssueMessage;
     /*

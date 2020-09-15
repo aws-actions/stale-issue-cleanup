@@ -47,6 +47,7 @@ describe('GitHub issue parser', () => {
       responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
       minimumUpvotesToExempt: parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
       cfsLabel: process.env.CFS_LABEL,
+      issueTypes: process.env.ISSUE_TYPES.split(","),
     });
   });
 
@@ -89,6 +90,7 @@ describe('GitHub issue parser', () => {
     process.env.ANCIENT_ISSUE_MESSAGE = '';
     process.env.STALE_ISSUE_MESSAGE = '';
     process.env.STALE_PR_MESSAGE = '';
+    process.env.ISSUE_TYPES = "issues,pull_requests";
     await run();
     process.env.STALE_ISSUE_MESSAGE = process.env.STALE_ISSUE_MESSAGE;
     process.env.ANCIENT_ISSUE_MESSAGE = OLD_ENV.ANCIENT_ISSUE_MESSAGE;
