@@ -21,7 +21,7 @@
   "dependencies": {
     "@actions/github": "^2.2.0",
     "chalk": "^4.1.0",
-    "dateformat": "^3.0.3",
+    "dateformat": "^4.4.1",
     "loglevel": "^1.6.8",
     "loglevel-plugin-prefix": "^0.8.4"
   },
