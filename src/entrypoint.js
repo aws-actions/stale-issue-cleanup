@@ -39,7 +39,7 @@ function getAndValidateInputs() {
     stalePrLabel: process.env.STALE_PR_LABEL,
     exemptPrLabels: process.env.EXEMPT_PR_LABELS,
     cfsLabel: process.env.CFS_LABEL,
-    issueTypes: process.env.ISSUE_TYPES.split(","),
+    issueTypes: process.env.ISSUE_TYPES.split(','),
     responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
     minimumUpvotesToExempt: parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
     dryrun: String(process.env.DRYRUN).toLowerCase() === 'true',
@@ -73,21 +73,20 @@ async function processIssues(client, args) {
     log.debug(`ISSUE #${issue.number}: ${issue.title}`);
     log.debug(`last updated ${issue.updated_at}`);
     const isPr = 'pull_request' in issue ? true : false;
-    const skip_pull_requests = args.issueTypes.indexOf(`pull_requests`) == -1;
-    const skip_issues = args.issueTypes.indexOf(`issues`) == -1
+    const skipPullRequests = args.issueTypes.indexOf(`pull_requests`) == -1;
+    const skipIssues = args.issueTypes.indexOf(`issues`) == -1;
 
-    if (isPr && skip_pull_requests) {
+    if (isPr && skipPullRequests) {
       // If record is a pull request but pull requests weren't configured
       log.debug(`Issue is a pull request, which are excluded`);
       return;
     }
 
-    if ((!isPr) && skip_issues) {
+    if (!isPr && skipIssues) {
       // If record is an issue but issues weren't configured
       log.debug(`Issue is an issue, which are excluded`);
       return;
     }
-
 
     const staleMessage = isPr ? args.stalePrMessage : args.staleIssueMessage;
     /*
@@ -98,18 +97,20 @@ async function processIssues(client, args) {
     const ancientMessage = args.ancientIssueMessage;
 
     const staleLabel = isPr ? args.stalePrLabel : args.staleIssueLabel;
-    const exemptLabels = parseCommaSeparatedString(isPr ? args.exemptPrLabels : args.exemptIssueLabels);
-    const responseRequestedLabel = isPr ? args.responseRequestedLabel : args.responseRequestedLabel;
+    const exemptLabels = parseCommaSeparatedString(
+      isPr ? args.exemptPrLabels : args.exemptIssueLabels
+    );
+    const responseRequestedLabel = isPr
+      ? args.responseRequestedLabel
+      : args.responseRequestedLabel;
 
     const issueTimelineEvents = await getTimelineEvents(client, issue);
     const currentTime = new Date(Date.now());
-    
-    if (exemptLabels && 
-      exemptLabels.some((s) => isLabeled(issue, s))
-      ) {
-        // If issue contains exempt label, do nothing
-        log.debug(`issue contains exempt label`);
-        return;
+
+    if (exemptLabels && exemptLabels.some((s) => isLabeled(issue, s))) {
+      // If issue contains exempt label, do nothing
+      log.debug(`issue contains exempt label`);
+      return;
     }
 
     if (isLabeled(issue, staleLabel)) {
@@ -152,7 +153,11 @@ async function processIssues(client, args) {
           }
         } else {
           // else ignore it because we need to wait longer before closing
-          log.debug(`${dateFormatToIsoUtc(currentTime)} is less than ${dateFormatToIsoUtc(sTime)}, doing nothing`);
+          log.debug(
+            `${dateFormatToIsoUtc(
+              currentTime
+            )} is less than ${dateFormatToIsoUtc(sTime)}, doing nothing`
+          );
         }
       }
     } else if (isLabeled(issue, responseRequestedLabel)) {
@@ -186,7 +191,11 @@ async function processIssues(client, args) {
           }
         } else {
           // else ignore it because we need to wait longer before staleing
-          log.debug(`${dateFormatToIsoUtc(currentTime)} is less than ${dateFormatToIsoUtc(rrTime)}, doing nothing`);
+          log.debug(
+            `${dateFormatToIsoUtc(
+              currentTime
+            )} is less than ${dateFormatToIsoUtc(rrTime)}, doing nothing`
+          );
         }
       }
     } else if (

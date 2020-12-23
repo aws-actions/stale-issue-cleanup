@@ -1,23 +1,11 @@
 on:
   pull_request:
-    branches:
-      - master
-  push:
-    branches:
-      - master
-
-name: Check
 
 jobs:
-  check:
-    name: Run Tests
+  test:
+    name: Run tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v1
-      with:
-        node-version: '10.x'
-    - name: Run tests
-      run: |
-        yarn install --frozen-lockfile
-        yarn test
+      - uses: actions/checkout@v2
+      - run: yarn install --frozen-lockfile
+      - run: yarn test
