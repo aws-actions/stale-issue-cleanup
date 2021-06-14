@@ -29,6 +29,7 @@ function getAndValidateInputs() {
   const args = {
     repoToken: process.env.REPO_TOKEN,
     ancientIssueMessage: process.env.ANCIENT_ISSUE_MESSAGE,
+    ancientPrMessage: process.env.ANCIENT_PR_MESSAGE,
     staleIssueMessage: process.env.STALE_ISSUE_MESSAGE,
     stalePrMessage: process.env.STALE_PR_MESSAGE,
     daysBeforeStale: parseFloat(process.env.DAYS_BEFORE_STALE),
@@ -94,7 +95,7 @@ async function processIssues(client, args) {
       ? args.ancientPrMessage
       : args.ancientIssueMessage;
     */
-    const ancientMessage = args.ancientIssueMessage;
+    const ancientMessage = isPr ? args.ancientPrMessage : args.ancientIssueMessage;
 
     const staleLabel = isPr ? args.stalePrLabel : args.staleIssueLabel;
     const exemptLabels = parseCommaSeparatedString(
