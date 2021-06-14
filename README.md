@@ -54,8 +54,10 @@ steps:
 
     # Messages this action will apply to issues
     stale-issue-message: Stale issue message
-    stale-pr-message: Stale issue message
-    ancient-issue-message: Stale issue message
+    stale-pr-message: Stale pr message
+    ancient-issue-message: ancient issue message
+    ancient-pr-message: Stale pr message
+
 
     # Labels this action will apply to issues
     stale-issue-label: closing-soon

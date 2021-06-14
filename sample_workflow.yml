@@ -15,6 +15,7 @@ jobs:
         # Setting messages to an empty string will cause the automation to skip
         # that category
         ancient-issue-message: Ancient issue message
+        ancient-pr-message: Ancient pr message
         stale-issue-message: Stale issue message
         stale-pr-message: Stale issue message
 
