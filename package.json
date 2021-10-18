@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/aws-actions/stale-issue-cleanup/#readme",
   "dependencies": {
-    "@actions/github": "^2.2.0",
+    "@actions/github": "^5.0.0",
     "chalk": "^4.1.0",
     "dateformat": "^4.4.1",
     "loglevel": "^1.6.8",
