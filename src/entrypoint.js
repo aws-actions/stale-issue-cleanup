@@ -182,13 +182,18 @@ async function processIssues(client, args) {
         }
       } else {
         if (currentTime >= rrTime) {
-          log.debug(`time expired on this issue, need to label it stale`);
-          if (args.dryrun) {
-            log.info(
-              `dry run: would mark #${issue.number} as ${staleLabel} due to ${responseRequestedLabel} age`
-            );
-          } else {
-            await markStale(client, issue, staleMessage, staleLabel);
+          if (staleMessage) {
+            log.debug(`time expired on this issue, need to label it stale`);
+            if (args.dryrun) {
+              log.info(
+                `dry run: would mark #${issue.number} as ${staleLabel} due to ${responseRequestedLabel} age`
+              );
+            } else {
+              await markStale(client, issue, staleMessage, staleLabel);
+            }
+          }
+          else {
+            log.debug(`stale message is null/empty, doing nothing`);
           }
         } else {
           // else ignore it because we need to wait longer before staleing
