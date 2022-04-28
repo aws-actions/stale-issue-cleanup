@@ -42,8 +42,10 @@ describe('GitHub issue parser', () => {
       daysBeforeAncient: parseFloat(process.env.DAYS_BEFORE_ANCIENT),
       staleIssueLabel: process.env.STALE_ISSUE_LABEL,
       exemptIssueLabels: process.env.EXEMPT_ISSUE_LABELS,
+      requiredIssueLabels: process.env.REQUIRED_ISSUE_LABELS,
       stalePrLabel: process.env.STALE_PR_LABEL,
       exemptPrLabels: process.env.EXEMPT_PR_LABELS,
+      requiredPrLabels: process.env.REQUIRED_PR_LABELS,
       responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
       minimumUpvotesToExempt: parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
       cfsLabel: process.env.CFS_LABEL,
@@ -651,6 +653,7 @@ describe('GitHub issue parser', () => {
 
     test('no exempt label', async () => {
       process.env.EXEMPT_ISSUE_LABELS = '';
+      process.env.REQUIRED_ISSUE_LABELS = '';
 
       scope
         .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
@@ -699,6 +702,7 @@ describe('GitHub issue parser', () => {
 
     test('one exempt label, but no issue has it', async () => {
       process.env.EXEMPT_ISSUE_LABELS = 'no-auto-closure-please';
+      process.env.REQUIRED_ISSUE_LABELS = '';
 
       scope
         .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
@@ -747,6 +751,7 @@ describe('GitHub issue parser', () => {
 
     test('one exempt label, one issue has it', async () => {
       process.env.EXEMPT_ISSUE_LABELS = 'go-away-bot';
+      process.env.REQUIRED_ISSUE_LABELS = '';
 
       scope
         .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
@@ -781,6 +786,7 @@ describe('GitHub issue parser', () => {
 
     test('two exempt labels, one issue has one of the labels', async () => {
       process.env.EXEMPT_ISSUE_LABELS = 'go-away-bot, bot-stay-away';
+      process.env.REQUIRED_ISSUE_LABELS = '';
 
       scope
         .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
@@ -815,6 +821,7 @@ describe('GitHub issue parser', () => {
 
     test('two exempt labels, two issues have one label each', async () => {
       process.env.EXEMPT_ISSUE_LABELS = 'help-wanted, go-away-bot';
+      process.env.REQUIRED_ISSUE_LABELS = '';
 
       scope
       .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
