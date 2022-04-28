@@ -100,6 +100,9 @@ describe('GitHub issue parser', () => {
   });
 
   test('consumes the GitHub API', async () => {
+    process.env.REQUIRED_ISSUE_LABELS = '';
+    process.env.REQUIRED_PR_LABELS = '';
+
     const responseRequestedReplies = [{
       url:"https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/256",
       id:172115562,
