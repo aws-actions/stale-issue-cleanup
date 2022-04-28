@@ -52,6 +52,10 @@ steps:
     # Types of issues that will be processed
     issue-types: issues,pull_requests
 
+    # # OPTIONAL: labels required to process it
+    # required-issue-labels: community
+    # required-pr-labels: community
+    
     # Messages this action will apply to issues
     stale-issue-message: Stale issue message
     stale-pr-message: Stale pr message

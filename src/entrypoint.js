@@ -101,12 +101,23 @@ async function processIssues(client, args) {
     const exemptLabels = parseCommaSeparatedString(
       isPr ? args.exemptPrLabels : args.exemptIssueLabels
     );
+
+    const requiredLabels = parseCommaSeparatedString(
+      isPr ? args.requiredPrLabels : args.requiredIssueLabels
+    );
+
     const responseRequestedLabel = isPr
       ? args.responseRequestedLabel
       : args.responseRequestedLabel;
 
     const issueTimelineEvents = await getTimelineEvents(client, issue);
     const currentTime = new Date(Date.now());
+
+    if (requiredLabels && !(requiredLabels.some((s) => isLabeled(issue, s)))) {
+      // If issue does not contain a required label, do nothing
+      log.debug(`issue does not contain a required label`);
+      return;
+    }
 
     if (exemptLabels && exemptLabels.some((s) => isLabeled(issue, s))) {
       // If issue contains exempt label, do nothing
