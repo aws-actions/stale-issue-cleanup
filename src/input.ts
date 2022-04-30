@@ -6,6 +6,8 @@ export interface args {
   token: string;
   expirationLabelMap?: string[];
   updateRemoveLabels?: string[];
+  prExpirationLabelMap?: string[];
+  prUpdateRemoveLabels?: string[];
 }
 
 export function getAndValidateInputs(): args {
@@ -20,10 +22,15 @@ export function getAndValidateInputs(): args {
   // Action map
   const labelValidationRegex = new RegExp(`^[A-Za-z0-9_.-,]+:(${labelActions.join('|')}):\\d+(:[A-Za-z0-9_.-,]+)?/i`);
   const expirationLabelMap = core
-    .getMultilineInput('expiration-label-map', { required: false })
+    .getMultilineInput('issue-expiration-label-map', { required: false })
     .filter(m => labelValidationRegex.test(m));
-  core.debug(`Parsed label mapping: ${expirationLabelMap}`);
-  const updateRemoveLabels = core.getInput('update-remove-labels', { required: false }).split(',');
+  core.debug(`Parsed issue label mapping: ${expirationLabelMap}`);
+  const prExpirationLabelMap = core
+    .getMultilineInput('pr-expiration-label-map', { required: false })
+    .filter(m => labelValidationRegex.test(m));
+  core.debug(`Parsed PR label mapping: ${prExpirationLabelMap}`);
+  const updateRemoveLabels = core.getInput('issue-update-remove-labels', { required: false }).split(',');
+  const prUpdateRemoveLabels = core.getInput('pr-update-remove-labels', { required: false }).split(',');
 
   return {
     dryrun: core.getBooleanInput('dry-run', { required: false }),
@@ -31,5 +38,7 @@ export function getAndValidateInputs(): args {
     token: core.getInput('repo-token'),
     expirationLabelMap,
     updateRemoveLabels,
+    prExpirationLabelMap,
+    prUpdateRemoveLabels,
   };
 }

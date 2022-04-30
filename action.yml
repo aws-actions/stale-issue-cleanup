@@ -14,64 +14,20 @@ inputs:
   dry-run:
     description: 'Set to true to not perform repository changes'
     default: false
-  expiration-label-map:
-    description: 'A multiline input mapping labels with actions and destination labels, applied after an expiration time. See README.md'
+  issue-expiration-label-map:
+    description: 'A multiline input mapping labels with actions and destination labels for issues, applied after an expiration time. See README.md'
     default: |-
       ''
-  update-remove-labels:
+  issue-update-remove-labels:
     description: 'A comma-seperated list of labels that should be removed on issue update. See README.md'
     default: ''
-
-
-#name: "'Stale Issue Cleanup' Action for GitHub Actions"
-#description: 'Close issues and pull requests with no recent activity'
-#branding:
-#  icon: 'cloud'
-#  color: 'orange'
-#inputs:
-#  repo-token:
-#    description: 'Token for the repository. Can be passed in using {{ secrets.GITHUB_TOKEN }}'
-#    required: true
-#  issue-types:
-#    description: 'Issue types to process ("issues", "pull_requests", or "issues,pull_requests")'
-#    default: 'issues,pull_requests'
-#  stale-issue-message:
-#    description: 'The message to post on the issue when tagging it. If none provided, will not mark issues stale.'
-#  stale-pr-message:
-#    description: 'The message to post on the pr when tagging it. If none provided, will not mark pull requests stale.'
-#  days-before-stale:
-#    description: 'The number of days old an issue can be before marking it stale.'
-#    default: 60
-#  days-before-close:
-#    description: 'The number of days to wait to close an issue or pull request after it being marked stale.'
-#    default: 7
-#  stale-issue-label:
-#    description: 'The label to apply when an issue is stale.'
-#    default: 'Stale'
-#  exempt-issue-labels:
-#    description: 'The labels to apply when an issue is exempt from being marked stale. Separate multiple labels with commas (eg. "label1,label2")'
-#  stale-pr-label:
-#    description: 'The label to apply when a pull request is stale.'
-#    default: 'Stale'
-#  exempt-pr-labels:
-#    description: 'The labels to apply when a pull request is exempt from being marked stale. Separate multiple labels with commas (eg. "label1,label2")'
-#  ancient-issue-message:
-#    description: 'The message to post when an issue is very old.'
-#  ancient-pr-message:
-#    description: 'The message to post when a pr is very old.'
-#  days-before-ancient:
-#    description: 'The number of days old an issue can be before marking it ancient.'
-#    default: 360
-#  response-requested-label:
-#    description: 'The label that gets applied when a response is requested.'
-#  closed-for-staleness-label:
-#    description: 'The label that gets applied when an issue is closed for staleness.'
-#  minimum-upvotes-to-exempt:
-#    description: 'The minimum number of "upvotes" that an issue needs to have before not marking as ancient.'
-#  loglevel:
-#    description: 'Set to DEBUG to enable debug logging'
-#  dry-run:
-#    description: 'Set to true to not perform repository changes'
+  pr-expiration-label-map:
+    description: 'A multiline input mapping labels with actions and destination labels for PRs, applied after an expiration time. See README.md'
+    default: |-
+      ''
+  pr-update-remove-labels:
+    description: 'A comma-seperated list of labels that should be removed on PR update. See README.md'
+    default: ''
 
 runs:
   using: 'node16'
