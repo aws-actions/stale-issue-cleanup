@@ -42,3 +42,12 @@ export function getAndValidateInputs(): args {
     prUpdateRemoveLabels,
   };
 }
+
+export function allInterestedLabels(args: args) {
+  return [
+    ...(args.expirationLabelMap || []),
+    ...(args.updateRemoveLabels || []),
+    ...(args.prExpirationLabelMap || []),
+    ...(args.prUpdateRemoveLabels || []),
+  ];
+}

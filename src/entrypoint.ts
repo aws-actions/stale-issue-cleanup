@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
-import { getAndValidateInputs } from './input';
+import { getIssues, processIssues } from './github';
+import { allInterestedLabels, getAndValidateInputs } from './input';
 
 /*
 Step 1: Grab the action inputs
@@ -13,6 +14,8 @@ Step 4: Apply labels according to the mapping
 async function run() {
   try {
     const args = getAndValidateInputs();
+    const issues = await getIssues(allInterestedLabels(args), args.token);
+    await processIssues(issues, args);
   } catch (e) {
     if (e instanceof Error) {
       core.setFailed(e.message);
