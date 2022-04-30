@@ -5,12 +5,23 @@ branding:
   icon: 'cloud'
   color: 'orange'
 inputs:
+  repo-token:
+    description: 'Token for the repository. Can be passed in using `{{ secrets.GITHUB_TOKEN }}`'
+    default: ${{ github.token }}
   minimum-upvotes-to-exempt:
     description: 'The minimum number of "upvotes" that an issue needs to have before never closing it.'
     default: 0
   dry-run:
     description: 'Set to true to not perform repository changes'
     default: false
+  expiration-label-map:
+    description: 'A multiline input mapping labels with actions and destination labels, applied after an expiration time. See README.md'
+    default: |-
+      ''
+  update-remove-labels:
+    description: 'A comma-seperated list of labels that should be removed on issue update. See README.md'
+    default: ''
+
 
 #name: "'Stale Issue Cleanup' Action for GitHub Actions"
 #description: 'Close issues and pull requests with no recent activity'
@@ -65,22 +76,3 @@ inputs:
 runs:
   using: 'node16'
   main: 'dist/index.js'
-  env:
-    REPO_TOKEN: ${{ github.token }}
-#    ISSUE_TYPES: ${{ inputs.issue-types }}
-#    ANCIENT_ISSUE_MESSAGE: ${{ inputs.ancient-issue-message }}
-#    ANCIENT_PR_MESSAGE: ${{ inputs.ancient-pr-message }}
-#    STALE_ISSUE_MESSAGE: ${{ inputs.stale-issue-message }}
-#    STALE_PR_MESSAGE: ${{ inputs.stale-pr-message }}
-#    DAYS_BEFORE_STALE: ${{ inputs.days-before-stale }}
-#    DAYS_BEFORE_CLOSE: ${{ inputs.days-before-close }}
-#    DAYS_BEFORE_ANCIENT: ${{ inputs.days-before-ancient }}
-#    STALE_ISSUE_LABEL: ${{ inputs.stale-issue-label }}
-#    EXEMPT_ISSUE_LABELS: ${{ inputs.exempt-issue-labels }}
-#    STALE_PR_LABEL: ${{ inputs.stale-pr-label }}
-#    EXEMPT_PR_LABELS: ${{ inputs.exempt-pr-labels }}
-#    RESPONSE_REQUESTED_LABEL: ${{ inputs.response-requested-label }}
-#    CFS_LABEL: ${{ inputs.closed-for-staleness-label }}
-    MINIMUM_UPVOTES_TO_EXEMPT: ${{ inputs.minimum-upvotes-to-exempt }}
-#    LOGLEVEL: ${{ inputs.loglevel }}
-    DRYRUN: ${{ inputs.dry-run }}
