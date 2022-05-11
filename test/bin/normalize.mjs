@@ -41,22 +41,27 @@ export async function normalizeFixtures(fixtureDirectory) {
       fixtureObject.original_path = file;
       return fixtureObject;
     })
-  );
+  ).catch(e => {
+    process.exitCode = 1;
+    console.error(e);
+  });
 
   // Run octokit's normalization and write back
-  await Promise.all(
-    fixtureContents.map(async fixture => {
-      for (const fixtureKey in fixture) {
-        // skip original path, this is just for us
-        if (fixtureKey === 'original_path') continue;
+  if (fixtureContents) {
+    await Promise.all(
+      fixtureContents.map(async fixture => {
+        for (const fixtureKey in fixture) {
+          // skip original path, this is just for us
+          if (fixtureKey === 'original_path') continue;
 
-        const normalized = await normalize('test', fixture[fixtureKey]);
-        // while octokit's normalization requires request headers, if we include them our nocks won't match
-        delete normalized.reqheaders;
-        delete fixture[fixtureKey];
-        fixture[fixtureKey] = normalized;
-      }
-      await fs.writeFile(fixture.original_path, JSON.stringify(fixture, null, 2), { encoding: 'utf-8' });
-    })
-  );
+          const normalized = await normalize({ commitSha: {}, ids: {} }, fixture[fixtureKey]);
+          // while octokit's normalization requires request headers, if we include them our nocks won't match
+          delete normalized.reqheaders;
+          delete fixture[fixtureKey];
+          fixture[fixtureKey] = normalized;
+        }
+        await fs.writeFile(fixture.original_path, JSON.stringify(fixture, null, 2), { encoding: 'utf-8' });
+      })
+    );
+  }
 }

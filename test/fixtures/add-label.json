@@ -1,0 +1,45 @@
+[
+  {
+    "scope": "https://api.github.com:443",
+    "method": "POST",
+    "path": "/repos/kellertk/aws-github-test/issues/1/labels",
+    "body": {
+      "labels": [
+        "bug",
+        "documentation",
+        "duplicate"
+      ]
+    },
+    "status": 200,
+    "response": [
+      "1f8b0800000000000003add2c14a03311006e05709b978699b5dbbbad29be0414110b10745a4a4c9b41b36bb899989b54adfddaca5a556682f3dfe33e1271fc9eb37379a8f8a3c2fcabcb8ccb31e6f9d864937e4f7d7937a71f3703b8ecf57aacc1f5f264bdee331d8b4ab883c8e8490de0ce686aa381d28d78800dea1a8c15a08540bb9c0fe7adb274012564ec1a298c6792a6a6503a9691d94b32ea4a4cba12c64da6a98c968898f2844e822aa603c19d7a6534fae01aa4c3b6706db33620b17ea94f8aab7e7c90f7bbe4ee3d14ec5065a92bfd7dbcaf6c71b63969517eaa8f1aef1c17d40d78bcc0526b5365d3f3272ec6ff53ff6f96176762276f4d62849b043de196db86aa687ba3cf6a4e3ca607a4d8cd0617db49605788fe9d730690348bd64f0699090afde7e00640d646bb6020000"
+    ],
+    "responseIsBinary": false,
+    "headers": {
+      "access-control-allow-origin": "*",
+      "access-control-expose-headers": "ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset",
+      "cache-control": "private, max-age=60, s-maxage=60",
+      "connection": "close",
+      "content-encoding": "gzip",
+      "content-security-policy": "default-src 'none'",
+      "content-type": "application/json; charset=utf-8",
+      "date": "Tue, 10 Oct 2017 16:00:00 GMT",
+      "etag": "\"00000000000000000000000000000000\"",
+      "referrer-policy": "origin-when-cross-origin, strict-origin-when-cross-origin",
+      "strict-transport-security": "max-age=31536000; includeSubdomains; preload",
+      "x-accepted-oauth-scopes": "",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "deny",
+      "x-github-media-type": "github.v3; format=json",
+      "x-github-request-id": "0000:00000:0000000:0000000:00000000",
+      "x-oauth-scopes": "read:org, read:repo_hook, read:user, repo, user:email, write:discussion",
+      "x-ratelimit-limit": "5000",
+      "x-ratelimit-remaining": "4999",
+      "x-ratelimit-reset": "1507651200000",
+      "x-ratelimit-resource": "core",
+      "x-ratelimit-used": 1,
+      "x-xss-protection": "0",
+      "content-length": "618"
+    }
+  }
+]

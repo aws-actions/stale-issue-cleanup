@@ -138,19 +138,21 @@ export async function reopenIssue(issue: number, token: string) {
   });
 }
 
-function getIssueLabelDate(timeline: Timeline, label: string) {
+export function getIssueLabelDate(timeline: Timeline, label: string) {
   // Return when the label was last applied
-  return timeline.reduce((p, c) => {
-    if (c.updated_at && c.label?.name === label) {
-      if (Date.parse(c.updated_at) > p) {
-        return Date.parse(c.updated_at);
+  return timeline
+    .filter(te => te.event === 'labeled')
+    .reduce((p, c) => {
+      if (c.updated_at && c.label?.name === label) {
+        if (Date.parse(c.updated_at) > p) {
+          return Date.parse(c.updated_at);
+        } else {
+          return p;
+        }
       } else {
         return p;
       }
-    } else {
-      return p;
-    }
-  }, 0);
+    }, 0);
 }
 
 export function issueDateCompare(issueDate: string, configuredDays: number) {

@@ -1,0 +1,39 @@
+[
+  {
+    "scope": "https://api.github.com:443",
+    "method": "GET",
+    "path": "/repos/kellertk/aws-github-test/issues?state=open&labels=",
+    "body": "",
+    "status": 200,
+    "response": [
+      "1f8b0800000000000003ed576b6fd33014fd2b53beb2ce49d68e116942888100890dd0182fa1c84ddcc4ccb183edb42ad5fe3bc74ed37505c6ba6e1248fb94d6b9f7f8fadc874fbecc82468b20094a6b6b9310426bbe53705b36c39d4c5544b35a1972c68460da9e113a31bdf66dcf32630937a66186c4c176e02db9557a9a6e80082041874c984d40166191166b4624add839b071a48a497b4be81d1a80d9f8f6605b2c8096b6122b3c2ca5e68f49a91b217c4a781e2451bc1bc683c1ee20de0ea4ca59ea168337efd2b3c9e1f18b93e6e37ed6df2d1f1da7b0974d35643a48606ab9150c869a556accb65cb2475cb008568d7136b340a8824b987471741b86fbbbfdbd7079b7d7876ff74e3f1e89ecdbb3c9f1e1ebf0e8db930358d331b554af26da2f9a790dbabd32252dc8f5e5d890a8857f3c3ee803a2d073107f2a17dc55c5ecd02e8a19d6d72318862325849ac07b35dacbdd727903b2f05a207059dc00015e33a26cc940168ee00ab9e0e66f55bc128cf79811f7400d380c03a235cbd70a68ee8370261291ccfc80f060cdd0649ad7962bb91e4b973c81a4744125ff41d74782a701809f446b9dca7bc0f33a5dbc426beb3223b5e6639a4d1d159a658c8f41ec0de0567c8166a7b56bc4f7aeeb4033b72ca579e53a6f448561e7ddc00c922f5f7d4ead3357359330172a3b63680d6f8a8e33861792c14062465cfc37ad73850e3756c9c5fbc5804bd0cf9966c0ce536a811f8771dc0b07bdf0d1491c255198f4079fb15f53e77fb5c98432739879148d2d954e119ccab84f3b3638fe70f4ec1d106966c165ea0e922200e35eb66eb9a62384323f9a1b7a30f88eeb088b9bdd6a0eabbdd4ae37207eb916171338e7a3d18d27f88ef3060535b559797314ef0e988ae962897714ce50e5d38e4d700ba6d1bb9b92d749024c860e1145ac2c1569a61a89e4a0961e44fed16b1f823645e9174aa534454caedc941ca1d750bc6e9d51dd7a6a57d1ed4f36658836c4412caf98e0925dddf4d7d432a44373d4333d52ba026d634ed3f6f24d695db7ac9d6f6f566773aadca5fa0faaa7e84ed55344ee443d456453f5b494940bfd140de2c1b2a279b9249f06af4e9f7e7a8e1c76f229ba904f4e376d79c4ad7be9b48636bb974ebfff1c5b111ff7d269e9dbf4ff944ee1de55d2298a4ee238891e26fdd0c9abdb924e7779f147ffebc51fad71f17ffd097080396838110000"
+    ],
+    "responseIsBinary": false,
+    "headers": {
+      "access-control-allow-origin": "*",
+      "access-control-expose-headers": "ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset",
+      "cache-control": "private, max-age=60, s-maxage=60",
+      "connection": "close",
+      "content-encoding": "gzip",
+      "content-security-policy": "default-src 'none'",
+      "content-type": "application/json; charset=utf-8",
+      "date": "Tue, 10 Oct 2017 16:00:00 GMT",
+      "etag": "\"00000000000000000000000000000000\"",
+      "referrer-policy": "origin-when-cross-origin, strict-origin-when-cross-origin",
+      "strict-transport-security": "max-age=31536000; includeSubdomains; preload",
+      "x-accepted-oauth-scopes": "repo",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "deny",
+      "x-github-media-type": "github.v3; format=json",
+      "x-github-request-id": "0000:00000:0000000:0000000:00000000",
+      "x-oauth-scopes": "read:org, read:repo_hook, read:user, repo, user:email, write:discussion",
+      "x-ratelimit-limit": "5000",
+      "x-ratelimit-remaining": "4999",
+      "x-ratelimit-reset": "1507651200000",
+      "x-ratelimit-resource": "core",
+      "x-ratelimit-used": 1,
+      "x-xss-protection": "0",
+      "content-length": "1756"
+    }
+  }
+]

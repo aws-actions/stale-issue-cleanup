@@ -1,0 +1,41 @@
+[
+  {
+    "scope": "https://api.github.com:443",
+    "method": "PATCH",
+    "path": "/repos/kellertk/aws-github-test/issues/1",
+    "body": {
+      "state": "closed"
+    },
+    "status": 200,
+    "response": [
+      "1f8b0800000000000003ed565d6fd33014fd2b535e59e7246bc7883421c48600699b40630c108adcc44dbc3a76643bad4ab4ffceb1d3766b41a3dd269ef694c4bee7dcebfb719c3668b40892a0b4b6360921b4e67b05b76533dccb544534ab9521632604d3764ce8d4f4badd9e65c6126e4cc30c8982ddc05b72abf42c7d042388041d32611e43b20c8b745c2d91b46237e0c6912a26ed13b12fd840cc264f47db7181b4b49558cbc39dd26c52149e074914ef87f1201ac483dd40aa9ca56e31f8908ea7c7e7ef2f9aabc36cf0f1f2edb77770289b6ac83420bb81e55630d8b932eff832efb82a37c6edb781500597d85e04812def2b3cdcef1f84771d9d1e7f3ab8bc3a13d9f5c9f4fcf8343cbb7e73046b3aa196eaf52afb45336f40e72b53d222b3be171b32a77f3d39ea83a2d073127f2017dc7d9decd86e3b79e3ecc270a4845053a0d7a35d1d95550764895a3270593c8001a896285b32240b47705d5c70f3af165e0bc6235ae21e28bfe33048b466f95601cd3108672a1149ebd5c193354393695e5baee476595a418249e9824afe8b6ecf04a4018197a1ad4ee511406e32c26b69ed202da9359fd06ce652a159c6f804897d00dd1a166c7656bb21fce2a60e69e696a534afdce48da830ec66a19641f2e3a7afa975e6995086e50008958df1d21963e68ce1856430918d10b7dfa683575c60d8955cee2ff52dc144679a813d4fa98587388ce35e38e885af2ee228090f92fee03bfc3575fea74d145dc47112bd4cfaa1b3e9825ba55933a18d2d954e11aecab86f05b83cff7a76f219789a59e43775474b1192719bdd71862a9f2ddee75e86587816abbfdcebcf62f52c56ff5fac30af985edc116e2aefbdad37fcefc40db46084582a4b459aa94642a2a0582f22ffe8750f419ba2f40ba5529a42189ca82939c2284022dd3aa3ba436aa79bdd2b9b31441b42692daf98e092dd7fb96c1af8820d8a56333d52ba82b64e384dbb3fbc94d675a76537bf01c73ca455a20b0000"
+    ],
+    "responseIsBinary": false,
+    "headers": {
+      "access-control-allow-origin": "*",
+      "access-control-expose-headers": "ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset",
+      "cache-control": "private, max-age=60, s-maxage=60",
+      "connection": "close",
+      "content-encoding": "gzip",
+      "content-security-policy": "default-src 'none'",
+      "content-type": "application/json; charset=utf-8",
+      "date": "Tue, 10 Oct 2017 16:00:00 GMT",
+      "etag": "\"00000000000000000000000000000000\"",
+      "referrer-policy": "origin-when-cross-origin, strict-origin-when-cross-origin",
+      "strict-transport-security": "max-age=31536000; includeSubdomains; preload",
+      "x-accepted-oauth-scopes": "",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "deny",
+      "x-github-media-type": "github.v3; format=json",
+      "x-github-request-id": "0000:00000:0000000:0000000:00000000",
+      "x-oauth-scopes": "read:org, read:repo_hook, read:user, repo, user:email, write:discussion",
+      "x-ratelimit-limit": "5000",
+      "x-ratelimit-remaining": "4999",
+      "x-ratelimit-reset": "1507651200000",
+      "x-ratelimit-resource": "core",
+      "x-ratelimit-used": 1,
+      "x-xss-protection": "0",
+      "content-length": "1456"
+    }
+  }
+]

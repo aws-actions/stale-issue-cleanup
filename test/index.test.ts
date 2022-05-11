@@ -11,27 +11,30 @@ import {
   isPr,
   Issue,
   getIssueLabelTimeline,
+  Timeline,
+  getIssueLabelDate,
 } from '../src/github';
 import * as issueData from './data/issue.json';
 import * as prData from './data/pr.json';
+import timelineData from './data/timeline.json';
 
-let RECORD_TESTS = false;
+const RECORD_TESTS = !!process.env.RECORD || false;
 
 const recordopts = { enable_reqheaders_recording: true, output_objects: true };
 const describeif = (condition: unknown) => {
   if (condition) {
     return describe;
   } else {
-    console.error('Set process.env.TestToken to run tests.');
+    console.error('Set process.env.TestToken to record tests.');
     return describe.skip;
   }
 };
 
-describeif(process.env.TestToken)('stale-issue-cleanup', () => {
+describeif(!RECORD_TESTS || (!!process.env.TestToken && RECORD_TESTS))('stale-issue-cleanup', () => {
   const env = process.env;
+  const TestToken = env.TestToken || 'ghs_000000000000000000000000000000000001';
 
   beforeAll(() => {
-    if (env.RECORD) RECORD_TESTS = true;
     if (!RECORD_TESTS) nock.back.setMode('lockdown');
     jest.resetModules();
     nock.back.fixtures = path.join(__dirname, 'fixtures');
@@ -53,7 +56,7 @@ describeif(process.env.TestToken)('stale-issue-cleanup', () => {
 
   test('adds a label', async () => {
     const { nockDone } = await nock.back('add-label.json', { recorder: recordopts });
-    const response = await addLabelToIssue(1, ['bug', 'documentation', 'duplicate'], env.TestToken!);
+    const response = await addLabelToIssue(1, ['bug', 'documentation', 'duplicate'], TestToken);
     expect(response.status).toBe(200);
     expect(response);
     nockDone();
@@ -61,7 +64,7 @@ describeif(process.env.TestToken)('stale-issue-cleanup', () => {
 
   test('removes a label', async () => {
     const { nockDone } = await nock.back('remove-label.json', { recorder: recordopts });
-    const response = await removeLabelFromIssue(1, ['bug', 'documentation', 'duplicate'], env.TestToken!);
+    const response = await removeLabelFromIssue(1, ['bug', 'documentation', 'duplicate'], TestToken);
     response.forEach(res => expect(res.status).toBe(200));
     nockDone();
   });
@@ -87,11 +90,15 @@ describeif(process.env.TestToken)('stale-issue-cleanup', () => {
     nockDone();
   });
 
-  test('get last label time', async () => {
+  test('get issue timeline', async () => {
     const { nockDone } = await nock.back('get-issue-timeline.json', { recorder: recordopts });
     const response = await getIssueLabelTimeline(1, env.TestToken!);
-    console.log(response);
+    expect(response.length).toBeGreaterThanOrEqual(1);
     nockDone();
+  });
+
+  test('get last label time from timeline', () => {
+    console.log(getIssueLabelDate(timelineData as unknown as Timeline, 'enhancement'));
   });
 
   test('issueDateCompare', () => {
