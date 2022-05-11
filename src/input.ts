@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import { labelActions } from './github';
+import { labelActions } from './github.js';
 export interface args {
   dryrun: boolean;
   minimumUpvotesToExempt: number;
@@ -24,11 +24,11 @@ export function getAndValidateInputs(): args {
   const expirationLabelMap = core
     .getMultilineInput('issue-expiration-label-map', { required: false })
     .filter(m => labelValidationRegex.test(m));
-  core.debug(`Parsed issue label mapping: ${expirationLabelMap}`);
+  core.debug(`Parsed issue label mapping: ${expirationLabelMap.toString()}`);
   const prExpirationLabelMap = core
     .getMultilineInput('pr-expiration-label-map', { required: false })
     .filter(m => labelValidationRegex.test(m));
-  core.debug(`Parsed PR label mapping: ${prExpirationLabelMap}`);
+  core.debug(`Parsed PR label mapping: ${prExpirationLabelMap.toString()}`);
   const updateRemoveLabels = core.getInput('issue-update-remove-labels', { required: false }).split(',');
   const prUpdateRemoveLabels = core.getInput('pr-update-remove-labels', { required: false }).split(',');
 

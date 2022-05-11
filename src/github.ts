@@ -1,6 +1,6 @@
 import * as github from '@actions/github';
 import * as core from '@actions/core';
-import { args } from './input';
+import { args } from './input.js';
 
 export const labelActions = ['add', 'remove', 'close'] as const;
 
@@ -26,56 +26,64 @@ export async function getIssues(labels: string[], token: string) {
 // Step 4: If they do, take the action specified in the configuration line, and repeat for all configuration lines
 // Step 5: Do step 4 but for the updateRemoveLabels
 export async function processIssues(issues: Issue[], args: args) {
-  issues.forEach(async issue => {
-    // Skip closed and locked issues
-    if (issue.state === 'closed' || issue.state === 'merged' || issue.locked) return;
+  await Promise.all(
+    issues.map(async issue => {
+      // Skip closed and locked issues
+      if (issue.state === 'closed' || issue.state === 'merged' || issue.locked) return;
 
-    const timeline = await getIssueLabelTimeline(issue.number, args.token);
-    const expirationLabelMap = isPr(issue) ? args.prExpirationLabelMap : args.expirationLabelMap;
-    const removeLabelMap = isPr(issue) ? args.prUpdateRemoveLabels : args.updateRemoveLabels;
-    // Enumerate labels in issue and check if each matches our action list
-    issue.labels.forEach(label => {
-      const issueLabel = typeof label === 'string' ? label : label.name;
-      if (issueLabel) {
-        if (expirationLabelMap) {
-          // These are labels that we apply if an issue hasn't been updated in a specified timeframe
-          expirationLabelMap.forEach(async lam => {
-            const sourceLabelList = lam.split(':')[0].split(',');
-            const configuredAction = lam.split(':')[1];
-            const configuredTime = parseInt(lam.split(':')[2]);
+      const timeline = await getIssueLabelTimeline(issue.number, args.token);
+      const expirationLabelMap = isPr(issue) ? args.prExpirationLabelMap : args.expirationLabelMap;
+      const removeLabelMap = isPr(issue) ? args.prUpdateRemoveLabels : args.updateRemoveLabels;
+      // Enumerate labels in issue and check if each matches our action list
+      await Promise.all(
+        issue.labels.map(async label => {
+          const issueLabel = typeof label === 'string' ? label : label.name;
+          if (issueLabel) {
+            if (expirationLabelMap) {
+              // These are labels that we apply if an issue hasn't been updated in a specified timeframe
+              await Promise.all(
+                expirationLabelMap.map(async lam => {
+                  const sourceLabelList = lam.split(':')[0].split(',');
+                  const configuredAction = lam.split(':')[1];
+                  const configuredTime = parseInt(lam.split(':')[2]);
 
-            if (sourceLabelList.includes(issueLabel) && issueDateCompare(issue.updated_at, configuredTime)) {
-              // Issue contains label specified and configured time has elapsed
-              switch (configuredAction) {
-                case 'add':
-                  await addLabelToIssue(issue.number, lam.split(':')[3], args.token);
-                  break;
-                case 'remove':
-                  await removeLabelFromIssue(issue.number, lam.split(':')[3], args.token);
-                  break;
-                case 'close':
-                  await closeIssue(issue.number, args.token);
-                  break;
-                default:
-                  core.error(`Unknown action ${configuredAction} for issue #${issue.number}, doing nothing`);
-              }
+                  if (sourceLabelList.includes(issueLabel) && issueDateCompare(issue.updated_at, configuredTime)) {
+                    // Issue contains label specified and configured time has elapsed
+                    switch (configuredAction) {
+                      case 'add':
+                        await addLabelToIssue(issue.number, [lam.split(':')[3]], args.token);
+                        break;
+                      case 'remove':
+                        await removeLabelFromIssue(issue.number, [lam.split(':')[3]], args.token);
+                        break;
+                      case 'close':
+                        await closeIssue(issue.number, args.token);
+                        break;
+                      default:
+                        core.error(`Unknown action ${configuredAction} for issue #${issue.number}, doing nothing`);
+                    }
+                  }
+                })
+              );
             }
-          });
-        }
-        if (removeLabelMap) {
-          // These are labels that need removed if an issue has been updated after they were applied
-          removeLabelMap.forEach(async removeMe => {
-            if (Date.parse(issue.updated_at) > getIssueLabelDate(timeline, removeMe)) {
-              removeLabelFromIssue(issue.number, removeMe, args.token);
+            if (removeLabelMap) {
+              // These are labels that need removed if an issue has been updated after they were applied
+              const labelsToRemove: string[] = [];
+              removeLabelMap.forEach(removeMe => {
+                if (Date.parse(issue.updated_at) > getIssueLabelDate(timeline, removeMe)) {
+                  labelsToRemove.push(removeMe);
+                }
+              });
+              await removeLabelFromIssue(issue.number, labelsToRemove, args.token);
             }
-          });
-        }
-      }
-    });
-  });
+          }
+        })
+      );
+    })
+  );
 }
 
-async function getIssueLabelTimeline(issueNumber: number, token: string) {
+export async function getIssueLabelTimeline(issueNumber: number, token: string) {
   const octokit = github.getOctokit(token);
   return (
     await octokit.paginate(octokit.rest.issues.listEventsForTimeline, {
@@ -86,33 +94,47 @@ async function getIssueLabelTimeline(issueNumber: number, token: string) {
   ).filter(event => event.event === 'labeled');
 }
 
-async function addLabelToIssue(issue: number, label: string, token: string) {
+export async function addLabelToIssue(issue: number, labels: string[], token: string) {
   const octokit = github.getOctokit(token);
-  await octokit.rest.issues.addLabels({
+  return await octokit.rest.issues.addLabels({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     issue_number: issue,
-    labels: [label],
+    labels,
   });
 }
 
-async function removeLabelFromIssue(issue: number, label: string, token: string) {
+export async function removeLabelFromIssue(issue: number, label: string[], token: string) {
   const octokit = github.getOctokit(token);
-  await octokit.rest.issues.removeLabel({
-    owner: github.context.repo.owner,
-    repo: github.context.repo.repo,
-    issue_number: issue,
-    name: label,
-  });
+  return await Promise.all(
+    label.map(async label => {
+      return await octokit.rest.issues.removeLabel({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        issue_number: issue,
+        name: label,
+      });
+    })
+  );
 }
 
-async function closeIssue(issue: number, token: string) {
+export async function closeIssue(issue: number, token: string) {
   const octokit = github.getOctokit(token);
-  await octokit.rest.issues.update({
+  return await octokit.rest.issues.update({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     issue_number: issue,
     state: 'closed',
+  });
+}
+
+export async function reopenIssue(issue: number, token: string) {
+  const octokit = github.getOctokit(token);
+  return await octokit.rest.issues.update({
+    owner: github.context.repo.owner,
+    repo: github.context.repo.repo,
+    issue_number: issue,
+    state: 'open',
   });
 }
 
@@ -131,12 +153,12 @@ function getIssueLabelDate(timeline: Timeline, label: string) {
   }, 0);
 }
 
-function issueDateCompare(issueDate: string, configuredDays: number) {
+export function issueDateCompare(issueDate: string, configuredDays: number) {
   const d = new Date(Date.parse(issueDate));
   d.setDate(d.getDate() + configuredDays);
   return d.valueOf() < Date.now();
 }
 
-function isPr(issue: Issue) {
+export function isPr(issue: Issue) {
   return !!issue.pull_request;
 }

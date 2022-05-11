@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
-import { getIssues, processIssues } from './github';
-import { allInterestedLabels, getAndValidateInputs } from './input';
+import { getIssues, processIssues } from './github.js';
+import { allInterestedLabels, getAndValidateInputs } from './input.js';
 
 /*
 Step 1: Grab the action inputs

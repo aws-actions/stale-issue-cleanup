@@ -4,23 +4,24 @@
     "allowUnusedLabels": false,
     "declaration": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["es2018"],
     "module": "commonjs",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
     "noEmitOnError": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "pretty": true,
     "sourceMap": true,
     "strict": true,
-    "target": "es2018",
-    "rootDir": "./src",
-    "outDir": "./lib"
+    "target": "es2020",
+    "outDir": "./lib",
   },
   "exclude": [
-    "test",
     "lib"
   ],
   "include": [
-    "./src/**.ts"
+    "./src/**.ts",
+    "./test/**.ts",
+    "./test/**.d.ts"
   ]
 }
