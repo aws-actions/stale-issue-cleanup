@@ -44,6 +44,7 @@ function getAndValidateInputs() {
     responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
     minimumUpvotesToExempt: parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
     dryrun: String(process.env.DRYRUN).toLowerCase() === 'true',
+    useCreatedDateForAncient: String(process.env.USE_CREATED_DATE_FOR_ANCIENT).toLowerCase() === 'true'
   };
 
   for (const numberInput of [
@@ -204,37 +205,48 @@ async function processIssues(client, args) {
           );
         }
       }
-    } else if (
-      Date.parse(issue.updated_at) <
-      new Date(Date.now() - MS_PER_DAY * args.daysBeforeAncient)
-    ) {
-      if (typeof args.minimumUpvotesToExempt !== 'undefined') {
-        if (
-          await hasEnoughUpvotes(
-            client,
-            issue.number,
-            args.minimumUpvotesToExempt
-          )
-        ) {
-          log.debug('issue is ancient but has enough upvotes to exempt');
+    } else {
+      const dateToCompare = (args.useCreatedDateForAncient ? Date.parse(issue.created_at) : Date.parse(issue.updated_at));
+      log.debug(`using issue ${args.useCreatedDateForAncient ? "created date" : "last updated"} to determine if the issue is ancient.`);
+      if (
+        dateToCompare < new Date(Date.now() - MS_PER_DAY * args.daysBeforeAncient)
+      ) {
+        if (typeof args.minimumUpvotesToExempt !== 'undefined') {
+          if (
+            await hasEnoughUpvotes(
+              client,
+              issue.number,
+              args.minimumUpvotesToExempt
+            )
+          ) {
+            log.debug('issue is ancient but has enough upvotes to exempt');
+          } else {
+            log.debug('issue is ancient and not enough upvotes; marking stale');
+            if (ancientMessage) {
+              if (args.dryrun) {
+                log.info(
+                  `dry run: would mark #${issue.number} as ${staleLabel} due to ${args.useCreatedDateForAncient ? "created date" : "last updated"} age`
+                );
+              } else {
+                await markStale(client, issue, ancientMessage, staleLabel);
+              }
+            } else {
+              log.debug(`ancient message is null/empty, doing nothing`);
+            }
+          }
         } else {
           log.debug('issue is ancient and not enough upvotes; marking stale');
-          if (args.dryrun) {
-            log.info(
-              `dry run: would mark #${issue.number} as ${staleLabel} due to last updated age`
-            );
+          if (ancientMessage) {
+            if (args.dryrun) {
+              log.info(
+                `dry run: would mark #${issue.number} as ${staleLabel} due to ${args.useCreatedDateForAncient ? "created date" : "last updated"} age`
+              );
+            } else {
+              await markStale(client, issue, ancientMessage, staleLabel);
+            }
           } else {
-            await markStale(client, issue, ancientMessage, staleLabel);
+            log.debug(`ancient message is null/empty, doing nothing`);
           }
-        }
-      } else {
-        log.debug('issue is ancient and not enough upvotes; marking stale');
-        if (args.dryrun) {
-          log.info(
-            `dry run: would mark #${issue.number} as ${staleLabel} due to last updated age`
-          );
-        } else {
-          await markStale(client, issue, ancientMessage, staleLabel);
         }
       }
     }
