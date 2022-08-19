@@ -48,6 +48,7 @@ describe('GitHub issue parser', () => {
       minimumUpvotesToExempt: parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
       cfsLabel: process.env.CFS_LABEL,
       issueTypes: process.env.ISSUE_TYPES.split(","),
+      useCreatedDateForAncient: !!process.env.USE_CREATED_DATE_FOR_ANCIENT
     });
   });
 
