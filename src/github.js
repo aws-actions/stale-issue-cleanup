@@ -133,6 +133,7 @@ module.exports.getIssues = async (client, args) => {
   }
 
   if (args.ancientIssueMessage && args.ancientIssueMessage !== '') {
+    log.debug(`using issue ${args.useCreatedDateForAncient ? "created date" : "last updated"} to determine for getting ancient issues.`);
     options = client.issues.listForRepo.endpoint.merge({
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
@@ -144,7 +145,7 @@ module.exports.getIssues = async (client, args) => {
     const ancientResults = await client.paginate(options);
     ancientIssues = ancientResults.filter(
       (issue) =>
-        new Date(issue.updated_at) <
+        (args.useCreatedDateForAncient ? new Date(issue.created_at) : new Date(issue.updated_at)) <
         new Date(Date.now() - MS_PER_DAY * args.daysBeforeAncient)
     );
     log.debug(`found ${ancientIssues.length} ancient issues`);
