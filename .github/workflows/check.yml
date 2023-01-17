@@ -6,6 +6,6 @@ jobs:
     name: Run tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v3.3.0
       - run: yarn install --frozen-lockfile
       - run: yarn test
