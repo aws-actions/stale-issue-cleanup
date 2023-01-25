@@ -26,7 +26,7 @@
     "loglevel-plugin-prefix": "^0.8.4"
   },
   "devDependencies": {
-    "dotenv": "^16.0.1",
+    "dotenv": "^16.0.3",
     "eslint": "^8.32.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^8.6.0",
