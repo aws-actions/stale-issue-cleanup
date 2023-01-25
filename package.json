@@ -36,6 +36,6 @@
     "eslint-plugin-promise": "^6.1.1",
     "jest": "^27.3.0",
     "nock": "^13.3.0",
-    "prettier": "^2.6.2"
+    "prettier": "^2.8.3"
   }
 }
