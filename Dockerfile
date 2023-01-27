@@ -1,4 +1,4 @@
-FROM mhart/alpine-node:12
+FROM mhart/alpine-node:16
 
 LABEL "repository"="https://github.com/aws-actions/stale-issue-cleanup"
 LABEL "version"="0.1.0"
