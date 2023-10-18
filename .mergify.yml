@@ -1,7 +1,7 @@
 pull_request_rules:
   - name: Automatically merge on CI success and review approval
     conditions:
-      - base~=master|integ-tests
+      - base~=main|integ-tests
       - "#approved-reviews-by>=1"
       - approved-reviews-by=@aws-actions/aws-sdk-all
       - -approved-reviews-by~=author
@@ -21,7 +21,7 @@ pull_request_rules:
 
   - name: Automatically approve Dependabot PRs
     conditions:
-      - base=master
+      - base=main
       - author~=^dependabot(|-preview)\[bot\]$
       - -title~=(WIP|wip)
       - -label~=(blocked|do-not-merge)
