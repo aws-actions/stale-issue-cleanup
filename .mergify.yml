@@ -22,7 +22,7 @@ pull_request_rules:
   - name: Automatically approve Dependabot PRs
     conditions:
       - base=main
-      - author~=^dependabot(|-preview)\[bot\]$
+      - author=dependabot[bot]
       - -title~=(WIP|wip)
       - -label~=(blocked|do-not-merge)
       - -merged
