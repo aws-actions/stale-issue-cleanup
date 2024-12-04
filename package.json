@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "dotenv": "^16.0.3",
-    "eslint": "^8.34.0",
+    "eslint": "^9.15.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.27.5",
