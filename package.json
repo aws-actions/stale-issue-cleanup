@@ -9,6 +9,9 @@
     "lint": "prettier --write src/**.js && eslint --fix src/**.js",
     "test": "jest --coverage"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/aws-actions/stale-issue-cleanup"
@@ -19,6 +22,7 @@
   },
   "homepage": "https://github.com/aws-actions/stale-issue-cleanup/#readme",
   "dependencies": {
+    "@actions/core": "^1.11.1",
     "@actions/github": "^2.2.0",
     "chalk": "^4.1.0",
     "dateformat": "^4.4.1",
@@ -27,6 +31,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
+    "@octokit/types": "^13.7.0",
+    "@types/dateformat": "^5.0.3",
     "dotenv": "^16.0.3",
     "eslint": "^9.15.0",
     "eslint-config-google": "^0.14.0",
