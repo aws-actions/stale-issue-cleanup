@@ -25,13 +25,7 @@ module.exports.logSetup = () => {
   ${colors[level](`[${level}]`)}\t${chalk.green(`${name}:`)}`,
     nameFormatter: (name) => name || 'main',
     timestampFormatter: (date) =>
-      date.toLocaleDateString() +
-      ' ' +
-      String('0' + date.getHours()).slice(-2) +
-      ':' +
-      String('0' + date.getMinutes()).slice(-2) +
-      ':' +
-      String('0' + date.getSeconds()).slice(-2),
+      `${date.toLocaleDateString()} ${String(`0${date.getHours()}`).slice(-2)}:${String(`0${date.getMinutes()}`).slice(-2)}:${String(`0${date.getSeconds()}`).slice(-2)}`,
     levelFormatter: (level) => level.toUpperCase(),
   });
 };

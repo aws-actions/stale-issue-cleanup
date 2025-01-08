@@ -26,6 +26,7 @@
     "loglevel-plugin-prefix": "^0.8.4"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "dotenv": "^16.0.3",
     "eslint": "^9.15.0",
     "eslint-config-google": "^0.14.0",

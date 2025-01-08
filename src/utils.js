@@ -17,10 +17,9 @@ module.exports.isLabeled = (issue, label) => {
       log.debug(`issue doesn't have label ${label}`);
     }
     return foundone;
-  } else {
-    log.debug(`no labels detail in #${issue.number}`);
-    return false;
   }
+  log.debug(`no labels detail in #${issue.number}`);
+  return false;
 };
 
 /**
@@ -34,9 +33,8 @@ const revCompareEventsByDate = (eventa, eventb) => {
   const dateB = Date.parse(eventb.created_at);
   if (dateA < dateB) {
     return 1;
-  } else {
-    return -1;
   }
+  return -1;
 };
 module.exports.revCompareEventsByDate = revCompareEventsByDate;
 
@@ -54,12 +52,11 @@ module.exports.getLastLabelTime = (events, label) => {
   if (searchLabelEvents.length > 0) {
     searchLabelEvents.sort(revCompareEventsByDate);
     return Date.parse(searchLabelEvents[0].created_at);
-  } else {
-    log.warn(
-      `Could not find a ${label} label event in this issue's timeline. Was this label renamed?`
-    );
-    return undefined;
   }
+  log.warn(
+    `Could not find a ${label} label event in this issue's timeline. Was this label renamed?`
+  );
+  return undefined;
 };
 
 /**
@@ -71,17 +68,16 @@ module.exports.getLastLabelTime = (events, label) => {
 module.exports.getLastCommentTime = (events) => {
   const commentEvents = events.filter((event) => event.event === 'commented');
   if (commentEvents.length > 0) {
-    log.debug(`issue has comments`);
+    log.debug("issue has comments");
     commentEvents.sort(revCompareEventsByDate);
     log.debug(`newest event is ${commentEvents[0].created_at}`);
     return Date.parse(commentEvents[0].created_at);
-  } else {
-    // No comments on issue, so use *all events*
-    log.debug(`issue has no comments`);
-    events.sort(revCompareEventsByDate);
-    log.debug(`newest event is ${events[0].created_at}`);
-    return Date.parse(events[0].created_at);
   }
+  // No comments on issue, so use *all events*
+  log.debug("issue has no comments");
+  events.sort(revCompareEventsByDate);
+  log.debug(`newest event is ${events[0].created_at}`);
+  return Date.parse(events[0].created_at);
 };
 
 /**
