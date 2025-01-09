@@ -52,7 +52,7 @@ export async function markStale(client: github.GitHub, issue: issueType, staleMe
     });
 };
 
-export function getTimelineEvents(client: github.GitHub, issue: issueType): Promise<issueTimelineEventsType> {
+export function getTimelineEvents(client: github.GitHub, issue: issueType): Promise<Array<issueTimelineEventsType>> {
     const options = client.issues.listEventsForTimeline.endpoint.merge({
         issue_number: issue.number,
         owner: github.context.repo.owner,
