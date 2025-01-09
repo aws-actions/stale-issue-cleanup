@@ -1,7 +1,7 @@
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 import type { Endpoints } from "@octokit/types";
-import type Inputs from "./entrypoint";
+import type { Inputs } from "./entrypoint";
 
 const MS_PER_DAY = 86400000;
 
@@ -64,7 +64,7 @@ export function getTimelineEvents(client: github.GitHub, issue: issueType): Prom
     });
 }
 
-export async function getIssues(client: github.GitHub, args: Inputs[]): Promise<Array<issueType>> {
+export async function getIssues(client: github.GitHub, args: Inputs): Promise<Array<issueType>> {
     let responseIssues = [];
     let staleIssues = [];
     let stalePrs = [];
