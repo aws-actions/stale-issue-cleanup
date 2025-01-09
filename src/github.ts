@@ -1,7 +1,7 @@
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 import type { Endpoints } from "@octokit/types";
-import type Inputs from "./entrypoint";
+import type { Inputs } from "./entrypoint";
 
 const MS_PER_DAY = 86400000;
 
@@ -52,7 +52,8 @@ export async function markStale(client: github.GitHub, issue: issueType, staleMe
     });
 };
 
-export function getTimelineEvents(client: github.GitHub, issue: issueType): Promise<issueTimelineEventsType> {
+// export function getTimelineEvents(client: github.GitHub, issue: issueType): Promise<issueTimelineEventsType> {
+export function getTimelineEvents(client: github.GitHub, issue: issueType): Promise<Array<issueTimelineEventsType>> {
     const options = client.issues.listEventsForTimeline.endpoint.merge({
         issue_number: issue.number,
         owner: github.context.repo.owner,
@@ -64,7 +65,7 @@ export function getTimelineEvents(client: github.GitHub, issue: issueType): Prom
     });
 }
 
-export async function getIssues(client: github.GitHub, args: Inputs[]): Promise<Array<issueType>> {
+export async function getIssues(client: github.GitHub, args: Inputs): Promise<Array<issueType>> {
     let responseIssues = [];
     let staleIssues = [];
     let stalePrs = [];
@@ -85,7 +86,7 @@ export async function getIssues(client: github.GitHub, args: Inputs[]): Promise<
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
             state: 'open',
-            labels: args.stateIssueLabel,
+            labels: args.staleIssueLabel,
             per_page: 100,
         });
         staleIssues = await client.paginate(options);
@@ -99,7 +100,7 @@ export async function getIssues(client: github.GitHub, args: Inputs[]): Promise<
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
             state: 'open',
-            labels: args.statePrLabel,
+            labels: args.stalePrLabel,
             per_page: 100,
         });
         stalePrs = await client.paginate(options);

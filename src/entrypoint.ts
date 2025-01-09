@@ -2,25 +2,29 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { closeIssue, removeLabel, markStale, getTimelineEvents, getIssues, hasEnoughUpvotes } from './github';
 import { isLabeled, getLastLabelTime, getLastCommentTime, asyncForEach, dateFormatToIsoUtc, parseCommaSeparatedString } from './utils';
+import type { Endpoints } from '@octokit/types';
+
+export type issueType = Endpoints['GET /repos/{owner}/{repo}/issues']['response']['data'][0];
+export type issueTimelineEventsType = Endpoints['GET /repos/{owner}/{repo}/issues/{issue_number}/timeline']['response']['data'][0];
 
 const MS_PER_DAY = 86400000;
 
 export type Inputs = {
     repoToken: string;
-    ancientIssueMessage?: string;
-    ancientPrMessage?: string; 
-    staleIssueMessage?: string;
-    stalePrMessage?: string;
+    ancientIssueMessage: string;
+    ancientPrMessage: string; 
+    staleIssueMessage: string;
+    stalePrMessage: string;
     daysBeforeStale: number;
     daysBeforeClose: number;
     daysBeforeAncient: number;
-    staleIssueLabel?: string;
-    exemptIssueLabels?: string;
-    stalePrLabel?: string;
-    exemptPrLabels?: string;
-    cfsLabel?: string;
+    staleIssueLabel: string;
+    exemptIssueLabels: string;
+    stalePrLabel: string;
+    exemptPrLabels: string;
+    cfsLabel: string;
     issueTypes: string[];
-    responseRequestedLabel?: string;
+    responseRequestedLabel: string;
     minimumUpvotesToExempt: number;
     dryrun: boolean;
     useCreatedDateForAncient: boolean;
@@ -29,20 +33,20 @@ export type Inputs = {
 function getAndValidateInputs(): Inputs {
     const args = {
         repoToken: process.env.REPO_TOKEN ?? '',
-        ancientIssueMessage: process.env.ANCIENT_ISSUE_MESSAGE,
-        ancientPrMessage: process.env.ANCIENT_PR_MESSAGE,
-        staleIssueMessage: process.env.STALE_ISSUE_MESSAGE,
-        stalePrMessage: process.env.STALE_PR_MESSAGE,
+        ancientIssueMessage: process.env.ANCIENT_ISSUE_MESSAGE ?? '',
+        ancientPrMessage: process.env.ANCIENT_PR_MESSAGE ?? '',
+        staleIssueMessage: process.env.STALE_ISSUE_MESSAGE ?? '',
+        stalePrMessage: process.env.STALE_PR_MESSAGE ?? '',
         daysBeforeStale: Number.parseFloat(process.env.DAYS_BEFORE_STALE ?? '0'),
         daysBeforeClose: Number.parseFloat(process.env.DAYS_BEFORE_CLOSE ?? '0'),
         daysBeforeAncient: Number.parseFloat(process.env.DAYS_BEFORE_ANCIENT ?? '0'),
-        staleIssueLabel: process.env.STALE_ISSUE_LABEL,
-        exemptIssueLabels: process.env.EXEMPT_ISSUE_LABELS,
-        stalePrLabel: process.env.STALE_PR_LABEL,
-        exemptPrLabels: process.env.EXEMPT_PR_LABELS,
-        cfsLabel: process.env.CFS_LABEL,
+        staleIssueLabel: process.env.STALE_ISSUE_LABEL ?? '',
+        exemptIssueLabels: process.env.EXEMPT_ISSUE_LABELS ?? '',
+        stalePrLabel: process.env.STALE_PR_LABEL ?? '',
+        exemptPrLabels: process.env.EXEMPT_PR_LABELS ?? '',
+        cfsLabel: process.env.CFS_LABEL ?? '',
         issueTypes: (process.env.ISSUE_TYPES ?? '').split(','),
-        responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
+        responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL ?? '',
         minimumUpvotesToExempt: Number.parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT ?? '0'),
         dryrun: String(process.env.DRYRUN).toLowerCase() === 'true',
         useCreatedDateForAncient: String(process.env.USE_CREATED_DATE_FOR_ANCIENT).toLowerCase() === 'true'
@@ -110,8 +114,14 @@ async function processIssues(client: github.GitHub, args: Inputs) {
 
     if (isLabeled(issue, staleLabel)) {
       core.debug("issue contains the stale label");
-      const lastCommentTime = getLastCommentTime(issueTimelineEvents);
-      const staleLabelTime = getLastLabelTime(issueTimelineEvents, staleLabel);
+      // const lastCommentTime = getLastCommentTime(issueTimelineEvents);
+
+      const commentTime = getLastCommentTime(issueTimelineEvents);
+      const lastCommentTime = commentTime ? commentTime.getTime() : 0;
+
+      // const lastCommentTime = 27637267
+      // const staleLabelTime = getLastLabelTime(issueTimelineEvents, staleLabel);
+      const staleLabelTime = getLastLabelTime(issueTimelineEvents, staleLabel)?.getTime();
       const sTime = new Date(
         lastCommentTime + MS_PER_DAY * args.daysBeforeClose
       );
@@ -156,16 +166,26 @@ async function processIssues(client: github.GitHub, args: Inputs) {
         }
       }
     } else if (isLabeled(issue, responseRequestedLabel)) {
-      const lastCommentTime = getLastCommentTime(issueTimelineEvents);
+      // const lastCommentTime = getLastCommentTime(issueTimelineEvents);
+      const commentTime = getLastCommentTime(issueTimelineEvents);
+      const lastCommentTime = commentTime ? commentTime.getTime() : 0;
+
       // const lastUpdateTme = Date.parse(issue.updated_at);
+      // const rrLabelTime = getLastLabelTime(
+      //   issueTimelineEvents,
+      //   responseRequestedLabel
+      // );
       const rrLabelTime = getLastLabelTime(
         issueTimelineEvents,
         responseRequestedLabel
       );
+      const rrLabelTimeMilliseconds = rrLabelTime ? rrLabelTime.getTime() : 0;
+
       const rrTime = new Date(
         lastCommentTime + MS_PER_DAY * args.daysBeforeStale
       );
-      if (lastCommentTime > rrLabelTime) {
+      // if (lastCommentTime > rrLabelTime) {
+      if (lastCommentTime > rrLabelTimeMilliseconds) {
         core.debug("issue was commented on after the label was applied");
         if (args.dryrun) {
           core.info(
@@ -200,8 +220,10 @@ async function processIssues(client: github.GitHub, args: Inputs) {
       }
     } else {
       const dateToCompare = (args.useCreatedDateForAncient ? Date.parse(issue.created_at) : Date.parse(issue.updated_at));
+      // const dateToCompareMilliseconds = dateToCompare.getTime()
       core.debug(`using issue ${args.useCreatedDateForAncient ? "created date" : "last updated"} to determine if the issue is ancient.`);
-      if (dateToCompare < new Date(Date.now() - MS_PER_DAY * args.daysBeforeAncient)) {
+      // if (dateToCompare < new Date(Date.now() - MS_PER_DAY * args.daysBeforeAncient)) {
+      if (dateToCompare < new Date(Date.now() - MS_PER_DAY * args.daysBeforeAncient).getTime()) {
         if (typeof args.minimumUpvotesToExempt !== 'undefined') {
           if (await hasEnoughUpvotes(
             client,
@@ -246,7 +268,7 @@ export async function run(): Promise<void> {
     try {
         core.info('Starting issue processing');
         const args = getAndValidateInputs();
-        core.debug(args);
+        core.debug(`${args}`);
         const client = new github.GitHub(args.repoToken);
         await processIssues(client, args);
         core.info('Labelled issue processing complete');

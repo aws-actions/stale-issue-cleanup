@@ -2,8 +2,8 @@ import dateformat from 'dateformat';
 import * as core from '@actions/core';
 import type { Endpoints } from '@octokit/types';
 
-type issueType = Endpoints['GET /repos/{owner}/{repo}/issues']['response']['data'][0];
-type issueTimelineEventsType = Endpoints['GET /repos/{owner}/{repo}/issues/{issue_number}/timeline']['response']['data'][0];
+export type issueType = Endpoints['GET /repos/{owner}/{repo}/issues']['response']['data'][0];
+export type issueTimelineEventsType = Endpoints['GET /repos/{owner}/{repo}/issues/{issue_number}/timeline']['response']['data'][0];
 
 export function isLabeled(issue: issueType, label: string) {
   if ('labels' in issue) {
