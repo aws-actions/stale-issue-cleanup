@@ -52,6 +52,7 @@ export async function markStale(client: github.GitHub, issue: issueType, staleMe
     });
 };
 
+// export function getTimelineEvents(client: github.GitHub, issue: issueType): Promise<issueTimelineEventsType> {
 export function getTimelineEvents(client: github.GitHub, issue: issueType): Promise<Array<issueTimelineEventsType>> {
     const options = client.issues.listEventsForTimeline.endpoint.merge({
         issue_number: issue.number,
@@ -85,7 +86,7 @@ export async function getIssues(client: github.GitHub, args: Inputs): Promise<Ar
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
             state: 'open',
-            labels: args.stateIssueLabel,
+            labels: args.staleIssueLabel,
             per_page: 100,
         });
         staleIssues = await client.paginate(options);
@@ -99,7 +100,7 @@ export async function getIssues(client: github.GitHub, args: Inputs): Promise<Ar
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
             state: 'open',
-            labels: args.statePrLabel,
+            labels: args.stalePrLabel,
             per_page: 100,
         });
         stalePrs = await client.paginate(options);
