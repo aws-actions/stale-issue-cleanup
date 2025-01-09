@@ -1,9 +1,10 @@
-import dateformat from 'dateformat';
 import * as core from '@actions/core';
 import type { Endpoints } from '@octokit/types';
+import dateformat from 'dateformat';
 
 export type issueType = Endpoints['GET /repos/{owner}/{repo}/issues']['response']['data'][0];
-export type issueTimelineEventsType = Endpoints['GET /repos/{owner}/{repo}/issues/{issue_number}/timeline']['response']['data'][0];
+export type issueTimelineEventsType =
+  Endpoints['GET /repos/{owner}/{repo}/issues/{issue_number}/timeline']['response']['data'][0];
 
 export function isLabeled(issue: issueType, label: string) {
   if ('labels' in issue) {
@@ -47,9 +48,11 @@ export function getLastLabelTime(events: issueTimelineEventsType[], label: strin
     }
     return false;
   });
-  const validLabelEvents = searchedLabelEvents.filter((event): event is issueTimelineEventsType & { created_at: string } => {
-    return 'created_at' in event;
-  });
+  const validLabelEvents = searchedLabelEvents.filter(
+    (event): event is issueTimelineEventsType & { created_at: string } => {
+      return 'created_at' in event;
+    },
+  );
   if (validLabelEvents.length > 0) {
     validLabelEvents.sort(revCompareEventsByDate);
     return new Date(Date.parse(validLabelEvents[0].created_at));
@@ -61,26 +64,26 @@ export function getLastLabelTime(events: issueTimelineEventsType[], label: strin
 export function getLastCommentTime(events: issueTimelineEventsType[]): Date | undefined {
   const commentEvents = events.filter((event) => event.event === 'commented');
   if (commentEvents.length > 0) {
-    core.debug("issue has comments");
+    core.debug('issue has comments');
     commentEvents.sort(revCompareEventsByDate);
     if ('created_at' in commentEvents[0]) {
       return new Date(Date.parse(commentEvents[0].created_at));
     }
   }
   // No comments on issue, so use *all events*
-  core.debug("issue has no comments");
+  core.debug('issue has no comments');
   events.sort(revCompareEventsByDate);
   if ('created_at' in events[0]) {
     return new Date(Date.parse(events[0].created_at));
   }
   return undefined;
-};
+}
 
 export function asyncForEach<T>(_array: T[], _callback: (item: T, index: number, array: T[]) => Promise<void>): never {
   throw new Error('Use Promise.all or Promise.allSettled instead');
 }
 
-export function dateFormatToIsoUtc(dateTime: Date|string|number): string {
+export function dateFormatToIsoUtc(dateTime: Date | string | number): string {
   return dateformat(dateTime, 'isoUtcDateTime');
 }
 

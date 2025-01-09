@@ -2,14 +2,7 @@ const { logSetup } = require('./logsetup.js');
 logSetup();
 const log = require('loglevel').getLogger('main');
 const github = require('@actions/github');
-const {
-  closeIssue,
-  removeLabel,
-  markStale,
-  getTimelineEvents,
-  getIssues,
-  hasEnoughUpvotes,
-} = require('./github.js');
+const { closeIssue, removeLabel, markStale, getTimelineEvents, getIssues, hasEnoughUpvotes } = require('./github.js');
 const {
   isLabeled,
   getLastLabelTime,
@@ -32,9 +25,9 @@ function getAndValidateInputs() {
     ancientPrMessage: process.env.ANCIENT_PR_MESSAGE,
     staleIssueMessage: process.env.STALE_ISSUE_MESSAGE,
     stalePrMessage: process.env.STALE_PR_MESSAGE,
-    daysBeforeStale: parseFloat(process.env.DAYS_BEFORE_STALE),
-    daysBeforeClose: parseFloat(process.env.DAYS_BEFORE_CLOSE),
-    daysBeforeAncient: parseFloat(process.env.DAYS_BEFORE_ANCIENT),
+    daysBeforeStale: Number.parseFloat(process.env.DAYS_BEFORE_STALE),
+    daysBeforeClose: Number.parseFloat(process.env.DAYS_BEFORE_CLOSE),
+    daysBeforeAncient: Number.parseFloat(process.env.DAYS_BEFORE_ANCIENT),
     staleIssueLabel: process.env.STALE_ISSUE_LABEL,
     exemptIssueLabels: process.env.EXEMPT_ISSUE_LABELS,
     stalePrLabel: process.env.STALE_PR_LABEL,
@@ -42,16 +35,12 @@ function getAndValidateInputs() {
     cfsLabel: process.env.CFS_LABEL,
     issueTypes: process.env.ISSUE_TYPES.split(','),
     responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
-    minimumUpvotesToExempt: parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
+    minimumUpvotesToExempt: Number.parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT),
     dryrun: String(process.env.DRYRUN).toLowerCase() === 'true',
-    useCreatedDateForAncient: String(process.env.USE_CREATED_DATE_FOR_ANCIENT).toLowerCase() === 'true'
+    useCreatedDateForAncient: String(process.env.USE_CREATED_DATE_FOR_ANCIENT).toLowerCase() === 'true',
   };
 
-  for (const numberInput of [
-    args.daysBeforeAncient,
-    args.daysBeforeClose,
-    args.daysBeforeStale,
-  ]) {
+  for (const numberInput of [args.daysBeforeAncient, args.daysBeforeClose, args.daysBeforeStale]) {
     if (isNaN(numberInput)) {
       throw Error(`input ${numberInput} did not parse to a valid integer`);
     }
@@ -99,12 +88,8 @@ async function processIssues(client, args) {
     const ancientMessage = isPr ? args.ancientPrMessage : args.ancientIssueMessage;
 
     const staleLabel = isPr ? args.stalePrLabel : args.staleIssueLabel;
-    const exemptLabels = parseCommaSeparatedString(
-      isPr ? args.exemptPrLabels : args.exemptIssueLabels
-    );
-    const responseRequestedLabel = isPr
-      ? args.responseRequestedLabel
-      : args.responseRequestedLabel;
+    const exemptLabels = parseCommaSeparatedString(isPr ? args.exemptPrLabels : args.exemptIssueLabels);
+    const responseRequestedLabel = isPr ? args.responseRequestedLabel : args.responseRequestedLabel;
 
     const issueTimelineEvents = await getTimelineEvents(client, issue);
     const currentTime = new Date(Date.now());
@@ -119,9 +104,7 @@ async function processIssues(client, args) {
       log.debug(`issue contains the stale label`);
       const lastCommentTime = getLastCommentTime(issueTimelineEvents);
       const staleLabelTime = getLastLabelTime(issueTimelineEvents, staleLabel);
-      const sTime = new Date(
-        lastCommentTime + MS_PER_DAY * args.daysBeforeClose
-      );
+      const sTime = new Date(lastCommentTime + MS_PER_DAY * args.daysBeforeClose);
 
       // This happens when we can't determine the time of labeling stale
       // but GitHub told us it has a stale label on it.
@@ -133,9 +116,7 @@ async function processIssues(client, args) {
       if (lastCommentTime > staleLabelTime) {
         log.debug('issue was commented on after the label was applied');
         if (args.dryrun) {
-          log.info(
-            `dry run: would remove ${staleLabel} and ${responseRequestedLabel} labels for #${issue.number}`
-          );
+          log.info(`dry run: would remove ${staleLabel} and ${responseRequestedLabel} labels for #${issue.number}`);
         } else {
           await removeLabel(client, issue, staleLabel);
           if (isLabeled(issue, responseRequestedLabel)) {
@@ -146,38 +127,25 @@ async function processIssues(client, args) {
         if (currentTime > sTime) {
           log.debug(`time expired on this issue, need to close it`);
           if (args.dryrun) {
-            log.info(
-              `dry run: would remove ${staleLabel} for #${issue.number} and close`
-            );
+            log.info(`dry run: would remove ${staleLabel} for #${issue.number} and close`);
           } else {
             await removeLabel(client, issue, staleLabel);
             await closeIssue(client, issue, args.cfsLabel);
           }
         } else {
           // else ignore it because we need to wait longer before closing
-          log.debug(
-            `${dateFormatToIsoUtc(
-              currentTime
-            )} is less than ${dateFormatToIsoUtc(sTime)}, doing nothing`
-          );
+          log.debug(`${dateFormatToIsoUtc(currentTime)} is less than ${dateFormatToIsoUtc(sTime)}, doing nothing`);
         }
       }
     } else if (isLabeled(issue, responseRequestedLabel)) {
       const lastCommentTime = getLastCommentTime(issueTimelineEvents);
       // const lastUpdateTme = Date.parse(issue.updated_at);
-      const rrLabelTime = getLastLabelTime(
-        issueTimelineEvents,
-        responseRequestedLabel
-      );
-      const rrTime = new Date(
-        lastCommentTime + MS_PER_DAY * args.daysBeforeStale
-      );
+      const rrLabelTime = getLastLabelTime(issueTimelineEvents, responseRequestedLabel);
+      const rrTime = new Date(lastCommentTime + MS_PER_DAY * args.daysBeforeStale);
       if (lastCommentTime > rrLabelTime) {
         log.debug(`issue was commented on after the label was applied`);
         if (args.dryrun) {
-          log.info(
-            `dry run: would remove ${responseRequestedLabel} from #${issue.number}`
-          );
+          log.info(`dry run: would remove ${responseRequestedLabel} from #${issue.number}`);
         } else {
           await removeLabel(client, issue, responseRequestedLabel);
         }
@@ -186,46 +154,33 @@ async function processIssues(client, args) {
           if (staleMessage) {
             log.debug(`time expired on this issue, need to label it stale`);
             if (args.dryrun) {
-              log.info(
-                `dry run: would mark #${issue.number} as ${staleLabel} due to ${responseRequestedLabel} age`
-              );
+              log.info(`dry run: would mark #${issue.number} as ${staleLabel} due to ${responseRequestedLabel} age`);
             } else {
               await markStale(client, issue, staleMessage, staleLabel);
             }
-          }
-          else {
+          } else {
             log.debug(`stale message is null/empty, doing nothing`);
           }
         } else {
           // else ignore it because we need to wait longer before staleing
-          log.debug(
-            `${dateFormatToIsoUtc(
-              currentTime
-            )} is less than ${dateFormatToIsoUtc(rrTime)}, doing nothing`
-          );
+          log.debug(`${dateFormatToIsoUtc(currentTime)} is less than ${dateFormatToIsoUtc(rrTime)}, doing nothing`);
         }
       }
     } else {
-      const dateToCompare = (args.useCreatedDateForAncient ? Date.parse(issue.created_at) : Date.parse(issue.updated_at));
-      log.debug(`using issue ${args.useCreatedDateForAncient ? "created date" : "last updated"} to determine if the issue is ancient.`);
-      if (
-        dateToCompare < new Date(Date.now() - MS_PER_DAY * args.daysBeforeAncient)
-      ) {
+      const dateToCompare = args.useCreatedDateForAncient ? Date.parse(issue.created_at) : Date.parse(issue.updated_at);
+      log.debug(
+        `using issue ${args.useCreatedDateForAncient ? 'created date' : 'last updated'} to determine if the issue is ancient.`,
+      );
+      if (dateToCompare < new Date(Date.now() - MS_PER_DAY * args.daysBeforeAncient)) {
         if (typeof args.minimumUpvotesToExempt !== 'undefined') {
-          if (
-            await hasEnoughUpvotes(
-              client,
-              issue.number,
-              args.minimumUpvotesToExempt
-            )
-          ) {
+          if (await hasEnoughUpvotes(client, issue.number, args.minimumUpvotesToExempt)) {
             log.debug('issue is ancient but has enough upvotes to exempt');
           } else {
             log.debug('issue is ancient and not enough upvotes; marking stale');
             if (ancientMessage) {
               if (args.dryrun) {
                 log.info(
-                  `dry run: would mark #${issue.number} as ${staleLabel} due to ${args.useCreatedDateForAncient ? "created date" : "last updated"} age`
+                  `dry run: would mark #${issue.number} as ${staleLabel} due to ${args.useCreatedDateForAncient ? 'created date' : 'last updated'} age`,
                 );
               } else {
                 await markStale(client, issue, ancientMessage, staleLabel);
@@ -239,7 +194,7 @@ async function processIssues(client, args) {
           if (ancientMessage) {
             if (args.dryrun) {
               log.info(
-                `dry run: would mark #${issue.number} as ${staleLabel} due to ${args.useCreatedDateForAncient ? "created date" : "last updated"} age`
+                `dry run: would mark #${issue.number} as ${staleLabel} due to ${args.useCreatedDateForAncient ? 'created date' : 'last updated'} age`,
               );
             } else {
               await markStale(client, issue, ancientMessage, staleLabel);

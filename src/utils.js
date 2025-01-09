@@ -53,9 +53,7 @@ module.exports.getLastLabelTime = (events, label) => {
     searchLabelEvents.sort(revCompareEventsByDate);
     return Date.parse(searchLabelEvents[0].created_at);
   }
-  log.warn(
-    `Could not find a ${label} label event in this issue's timeline. Was this label renamed?`
-  );
+  log.warn(`Could not find a ${label} label event in this issue's timeline. Was this label renamed?`);
   return undefined;
 };
 
@@ -68,13 +66,13 @@ module.exports.getLastLabelTime = (events, label) => {
 module.exports.getLastCommentTime = (events) => {
   const commentEvents = events.filter((event) => event.event === 'commented');
   if (commentEvents.length > 0) {
-    log.debug("issue has comments");
+    log.debug('issue has comments');
     commentEvents.sort(revCompareEventsByDate);
     log.debug(`newest event is ${commentEvents[0].created_at}`);
     return Date.parse(commentEvents[0].created_at);
   }
   // No comments on issue, so use *all events*
-  log.debug("issue has no comments");
+  log.debug('issue has no comments');
   events.sort(revCompareEventsByDate);
   log.debug(`newest event is ${events[0].created_at}`);
   return Date.parse(events[0].created_at);
@@ -92,13 +90,13 @@ module.exports.asyncForEach = async (array, callback) => {
 };
 
 /**
- * Returns a formatted version of `dateTime` in UTC 
+ * Returns a formatted version of `dateTime` in UTC
  * format (yyyy-mm-dd'T'HH:MM:ss'Z')
  * @param {(Date|String|number)} dateTime
  * @return {String} `dateTime` formatted in UTC format
  */
 module.exports.dateFormatToIsoUtc = (dateTime) => {
-  return dateFormat(dateTime, "isoUtcDateTime");
+  return dateFormat(dateTime, 'isoUtcDateTime');
 };
 
 /**
@@ -109,5 +107,5 @@ module.exports.dateFormatToIsoUtc = (dateTime) => {
  */
 module.exports.parseCommaSeparatedString = (s) => {
   if (!s.length) return [];
-  return s.split(',').map(l => l.trim());
+  return s.split(',').map((l) => l.trim());
 };

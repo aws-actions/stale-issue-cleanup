@@ -133,7 +133,9 @@ module.exports.getIssues = async (client, args) => {
   }
 
   if (args.ancientIssueMessage && args.ancientIssueMessage !== '') {
-    log.debug(`using issue ${args.useCreatedDateForAncient ? "created date" : "last updated"} to determine for getting ancient issues.`);
+    log.debug(
+      `using issue ${args.useCreatedDateForAncient ? 'created date' : 'last updated'} to determine for getting ancient issues.`,
+    );
     options = client.issues.listForRepo.endpoint.merge({
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
@@ -146,24 +148,19 @@ module.exports.getIssues = async (client, args) => {
     ancientIssues = ancientResults.filter(
       (issue) =>
         (args.useCreatedDateForAncient ? new Date(issue.created_at) : new Date(issue.updated_at)) <
-        new Date(Date.now() - MS_PER_DAY * args.daysBeforeAncient)
+        new Date(Date.now() - MS_PER_DAY * args.daysBeforeAncient),
     );
     log.debug(`found ${ancientIssues.length} ancient issues`);
   } else {
     log.debug(`skipping ancient issues due to empty message`);
   }
 
-  const issues = [
-    ...responseIssues,
-    ...staleIssues,
-    ...stalePrs,
-    ...ancientIssues,
-  ];
+  const issues = [...responseIssues, ...staleIssues, ...stalePrs, ...ancientIssues];
   return Object.values(
     issues.reduce((unique, item) => {
       unique[`${item.id}`] = item;
       return unique;
-    }, [])
+    }, []),
   );
 };
 
@@ -186,12 +183,7 @@ module.exports.hasEnoughUpvotes = async (client, issueNumber, upvoteCount) => {
   if (reactions) {
     reactions.unshift(0);
     const upvotes = reactions.reduce((acc, cur) => {
-      if (
-        cur.content === '+1' ||
-        cur.content === 'heart' ||
-        cur.content === 'hooray' ||
-        cur.content === 'rocket'
-      ) {
+      if (cur.content === '+1' || cur.content === 'heart' || cur.content === 'hooray' || cur.content === 'rocket') {
         return acc + 1;
       } else {
         return acc;
