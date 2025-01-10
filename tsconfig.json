@@ -18,5 +18,5 @@
     "experimentalDecorators": true,
     "strictPropertyInitialization": true
   },
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "test/**.ts"]
 }

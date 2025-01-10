@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "GitHub Action that cleans up old and response-reqested issues",
   "private": true,
-  "main": "entrypoint.js",
+  "main": "dist/entrypoint.js",
   "scripts": {
     "check-lint": "prettier --list-different src/**.js && eslint src/**.js",
     "lint": "biome check --write src",
-    "test": "jest --coverage"
+    "test": "npm run lint && vitest run",
+    "build": "tsc",
+    "package": "npm run build && ncc build -m --license THIRD-PARTY -o dist && cp dist/THIRD-PARTY . && del-cli dist/THIRD-PARTY"
   },
   "engines": {
     "node": ">=20"
@@ -30,8 +32,11 @@
     "@biomejs/biome": "1.9.4",
     "@octokit/types": "^13.7.0",
     "@types/dateformat": "^5.0.3",
+    "@vercel/ncc": "^0.38.3",
+    "@vitest/coverage-v8": "^2.1.8",
     "dotenv": "^16.0.3",
     "nock": "^13.3.0",
+    "typescript": "^5.7.3",
     "vitest": "^2.1.8"
   }
 }

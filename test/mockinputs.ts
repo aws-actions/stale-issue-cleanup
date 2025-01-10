@@ -156,6 +156,7 @@ export const issue = {
     "author_association": "COLLABORATOR",
     "state_reason": "completed"
 }
+
 export const issueWithoutLabels = {
     "node_id": "MDU6SXNzdWUx",
     "url": "https://api.github.com/repos/octocat/Hello-World/issues/1347",
