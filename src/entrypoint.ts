@@ -32,7 +32,7 @@ export type Inputs = {
   useCreatedDateForAncient: boolean;
 };
 
-function getAndValidateInputs(): Inputs {
+export function getAndValidateInputs(): Inputs {
   const args = {
     repoToken: process.env.REPO_TOKEN ?? '',
     ancientIssueMessage: process.env.ANCIENT_ISSUE_MESSAGE ?? '',
@@ -239,4 +239,8 @@ export async function run(): Promise<void> {
     core.error(`failed to run action: ${e}`);
     process.exitCode = 1;
   }
+}
+
+if (require.main === module) {
+  run();
 }
