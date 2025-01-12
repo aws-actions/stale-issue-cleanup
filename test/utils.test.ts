@@ -1,16 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import * as utils from '../src/utils';
-import * as mockinputs from './mockinputs.test.ts';
 import * as core from '@actions/core';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as utils from '../src/utils';
+import * as mockinputs from './mockinputs.ts';
 
-describe('Utility functions', {}, () =>  {
+describe('Utility functions', {}, () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.spyOn(core, 'setFailed').mockImplementation(() => {});
     vi.spyOn(core, 'debug').mockImplementation(() => {});
   });
 
-  it('Can find if an issue is labeled', {}, () =>{
+  it('Can find if an issue is labeled', {}, () => {
     const issue = mockinputs.issue;
     expect(utils.isLabeled(issue, 'bug')).toBeTruthy();
     expect(utils.isLabeled(issue, 'enhancement')).toBeFalsy();
@@ -58,7 +58,7 @@ describe('Utility functions', {}, () =>  {
     const events = mockinputs.issue257Timeline;
     const lastTime = utils.getLastCommentTime(events);
     expect(lastTime).toBeInstanceOf(Date);
-    expect(lastTime).toEqual(new Date('2019-12-31T00:00:00.000Z'));
+    expect(lastTime).toEqual(new Date(mockinputs.now));
   });
 
   it('Can get a time if there are no comments anyway', {}, () => {

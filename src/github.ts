@@ -49,17 +49,14 @@ export async function markStale(client: github.GitHub, issue: issueType, staleMe
   });
 }
 
-// export function getTimelineEvents(client: github.GitHub, issue: issueType): Promise<issueTimelineEventsType> {
-export function getTimelineEvents(client: github.GitHub, issue: issueType): Promise<Array<issueTimelineEventsType>> {
+export async function getTimelineEvents(client: github.GitHub, issue: issueType): Promise<issueTimelineEventsType[]> {
   const options = client.issues.listEventsForTimeline.endpoint.merge({
     issue_number: issue.number,
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     per_page: 100,
   });
-  return client.paginate(options).then((events) => {
-    return events[events.length - 1];
-  });
+  return client.paginate(options);
 }
 
 export async function getIssues(client: github.GitHub, args: Inputs): Promise<Array<issueType>> {
@@ -151,7 +148,7 @@ export async function hasEnoughUpvotes(
     per_page: 100,
   });
   const reactions = await client.paginate(options);
-  if (reactions) {
+  if (reactions && reactions.length > 0) {
     const upvotes = reactions.reduce((acc: number, cur: { content: string }) => {
       if (cur.content === '+1' || cur.content === 'heart' || cur.content === 'hooray' || cur.content === 'rocket') {
         return acc + 1;

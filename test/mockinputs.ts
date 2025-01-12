@@ -1,3 +1,6 @@
+import type { Endpoints } from '@octokit/types';
+
+type issueType = Endpoints['GET /repos/{owner}/{repo}/issues']['response']['data'][0];
 export const issue = {
   id: 1,
   node_id: 'MDU6SXNzdWUx',
@@ -155,9 +158,9 @@ export const issue = {
   },
   author_association: 'COLLABORATOR',
   state_reason: 'completed',
-};
-
+} satisfies issueType;
 export const issueWithoutLabels = {
+  id: 1,
   node_id: 'MDU6SXNzdWUx',
   url: 'https://api.github.com/repos/octocat/Hello-World/issues/1347',
   repository_url: 'https://api.github.com/repos/octocat/Hello-World',
@@ -302,224 +305,62 @@ export const issueWithoutLabels = {
   },
   author_association: 'COLLABORATOR',
   state_reason: 'completed',
+} satisfies Omit<issueType, 'labels'>;
+
+export const actionInputs = {
+  GITHUB_REPOSITORY: 'aws-actions/stale-issue-cleanup',
+  LOGLEVEL: 'DEBUG',
+  REPO_TOKEN: 'FAKE-REPO-TOKEN',
+  ANCIENT_ISSUE_MESSAGE: 'Ancient issue message.',
+  ANCIENT_PR_MESSAGE: 'Ancient Pr message.',
+  STALE_ISSUE_MESSAGE: 'Stale issue message.',
+  STALE_PR_MESSAGE: 'Stale pr message.',
+  DAYS_BEFORE_STALE: '0.05',
+  DAYS_BEFORE_CLOSE: '0.06',
+  DAYS_BEFORE_ANCIENT: '1',
+  STALE_ISSUE_LABEL: 'closing-soon',
+  EXEMPT_ISSUE_LABELS: 'go-away-bot',
+  STALE_PR_LABEL: 'stale-pr',
+  EXEMPT_PR_LABELS: 'go-away-bot',
+  RESPONSE_REQUESTED_LABEL: 'response-requested',
+  CFS_LABEL: 'closed-for-staleness',
+  MINIMUM_UPVOTES_TO_EXEMPT: '1',
+  ISSUE_TYPES: 'issues,pull_requests',
 };
-const now = '2019-12-31T00:00:00.000Z';
-export const responseRequestedReplies = [
-  {
-    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/256',
-    id: 172115562,
-    node_id: 'MDU6SXNzdWUxNzIxMTU1NjI=',
-    number: 256,
-    title: 'Exempt',
-    labels: [
-      {
-        id: 600797884,
-        node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
-        url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/go-away-bot',
-        name: 'go-away-bot',
-      },
-    ],
-    state: 'open',
-    comments: 0,
-    created_at: '2016-08-19T11:57:17Z',
-    updated_at: '2017-05-08T21:20:09Z',
-    closed_at: '2016-08-19T12:48:43Z',
-    author_association: 'NONE',
-    body: null,
-  },
-  {
-    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/257',
-    id: 172115557,
-    node_id: 'MDU6SXNzdWUx7zIxMTU1NjI=',
-    number: 257,
-    title: 'Stale but commented',
-    labels: [
-      {
-        id: 600797884,
-        node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
-        url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
-        name: 'response-requested',
-      },
-      {
-        id: 600797885,
-        node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
-        url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/closing-soon',
-        name: 'closing-soon',
-      },
-    ],
-    state: 'open',
-    comments: 1,
-    created_at: '2016-08-19T11:57:17Z',
-    updated_at: now,
-    closed_at: '2016-08-19T12:48:43Z',
-    author_association: 'NONE',
-    body: null,
-  },
-  {
-    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/261',
-    id: 172115561,
-    node_id: 'MDU6SXNzd6Ux7zIxMTU1NjI=',
-    number: 261,
-    title: 'Mark me stale',
-    labels: [
-      {
-        id: 600797884,
-        node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
-        url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
-        name: 'response-requested',
-      },
-    ],
-    state: 'open',
-    comments: 1,
-    // created_at: new Date(Date.parse(now) - 864e5 * process.env.DAYS_BEFORE_STALE).toISOString(),
-    created_at: new Date(
-      Date.parse(now) - 864e5 * Number.parseFloat(process.env.DAYS_BEFORE_STALE ?? '0'),
-    ).toISOString(),
-    updated_at: new Date(
-      Date.parse(now) - 864e5 * Number.parseFloat(process.env.DAYS_BEFORE_STALE ?? '0'),
-    ).toISOString(),
-    closed_at: '2016-08-19T12:48:43Z',
-    author_association: 'NONE',
-    body: null,
-  },
-  {
-    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/262',
-    id: 179915562,
-    node_id: 'MDU62XNzd6Ux7zIxMTU1NjI=',
-    number: 262,
-    title: 'Comments happened',
-    labels: [
-      {
-        id: 600797884,
-        node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
-        url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
-        name: 'response-requested',
-      },
-    ],
-    state: 'open',
-    comments: 1,
-    created_at: '2016-08-19T11:57:17Z',
-    updated_at: now,
-    closed_at: '2016-08-19T12:48:43Z',
-    author_association: 'NONE',
-    body: null,
-  },
-  {
-    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/263',
-    id: 179916362,
-    node_id: 'MDU62X63d6Ux7zIxMTU1NjI=',
-    number: 263,
-    title: 'Keep me open',
-    labels: [
-      {
-        id: 600797884,
-        node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
-        url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
-        name: 'response-requested',
-      },
-    ],
-    state: 'open',
-    comments: 0,
-    created_at: '2016-08-19T11:57:17Z',
-    updated_at: now,
-    closed_at: '2016-08-19T12:48:43Z',
-    author_association: 'NONE',
-    body: null,
-  },
-];
 
-export const staleIssueReplies = [
-  {
-    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/257',
-    id: 172115557,
-    node_id: 'MDU6SXNzdWUx7zIxMTU1NjI=',
-    number: 257,
-    title: 'Stale but commented',
-    labels: [
-      {
-        id: 600797884,
-        node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
-        url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
-        name: 'response-requested',
-      },
-      {
-        id: 600797885,
-        node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
-        url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/closing-soon',
-        name: 'closing-soon',
-      },
-    ],
-    state: 'open',
-    comments: 1,
-    created_at: '2016-08-19T11:57:17Z',
-    updated_at: now,
-    closed_at: '2016-08-19T12:48:43Z',
-    author_association: 'NONE',
-    body: null,
-  },
-  {
-    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/258',
-    id: 172115587,
-    node_id: 'MD86SXNzdWUx7zIxMTU1NjI=',
-    number: 258,
-    title: 'Stale and close',
-    labels: [
-      {
-        id: 600797885,
-        node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
-        url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/closing-soon',
-        name: 'closing-soon',
-      },
-    ],
-    state: 'open',
-    comments: 0,
-    created_at: '2016-08-19T11:57:17Z',
-    updated_at: '2016-08-19T12:48:44Z',
-    closed_at: '2016-08-19T12:48:43Z',
-    author_association: 'NONE',
-    body: null,
-  },
-  {
-    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/259',
-    id: 172115559,
-    node_id: 'MD86SXNzdWUx759xMTU1NjI=',
-    number: 259,
-    title: 'Stale no close',
-    labels: [
-      {
-        id: 600797885,
-        node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
-        url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/closing-soon',
-        name: 'closing-soon',
-      },
-    ],
-    state: 'open',
-    comments: 0,
-    created_at: '2016-08-19T11:57:17Z',
-    updated_at: now,
-    closed_at: '2016-08-19T12:48:43Z',
-    author_association: 'NONE',
-    body: null,
-  },
-];
+export const now = new Date(Date.now()).toISOString();
 
-export const ancientIssueReplies = [
-  {
-    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299',
-    id: 172115599,
-    node_id: 'MDU6SXNzdWUxNzIx9TU1NjI=',
-    number: 299,
-    title: 'Ancient',
-    state: 'open',
-    comments: 0,
-    created_at: '2016-08-19T11:57:17Z',
-    updated_at: '2017-05-08T21:20:09Z',
-    closed_at: '2016-08-19T12:48:43Z',
-    author_association: 'NONE',
-    body: null,
-  },
-];
-
+/**
+ * Issue 256: Labelled with go-away-bot, no comments
+ */
+export const issue256 = {
+  url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/256',
+  id: 172115562,
+  node_id: 'MDU6SXNzdWUxNzIxMTU1NjI=',
+  number: 256,
+  title: 'Exempt',
+  labels: [
+    {
+      id: 600797884,
+      node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
+      url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/go-away-bot',
+      name: 'go-away-bot',
+    },
+    {
+      id: 600797885,
+      node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
+      url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
+      name: 'response-requested',
+    }
+  ],
+  state: 'open',
+  comments: 0,
+  created_at: '2016-08-19T11:57:17Z',
+  updated_at: '2017-05-08T21:20:09Z',
+  closed_at: '2016-08-19T12:48:43Z',
+  author_association: 'NONE',
+  body: null,
+};
 export const issue256Timeline = [
   {
     id: 1073560592,
@@ -534,6 +375,37 @@ export const issue256Timeline = [
   },
 ];
 
+/**
+ * Issue 257: Response-requested and closing-soon, then commented after the closing-soon label was added
+ */
+export const issue257 = {
+  url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/257',
+  id: 172115557,
+  node_id: 'MDU6SXNzdWUx7zIxMTU1NjI=',
+  number: 257,
+  title: 'Stale but commented',
+  labels: [
+    {
+      id: 600797884,
+      node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
+      url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
+      name: 'response-requested',
+    },
+    {
+      id: 600797885,
+      node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
+      url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/closing-soon',
+      name: 'closing-soon',
+    },
+  ],
+  state: 'open',
+  comments: 1,
+  created_at: '2016-08-19T11:57:17Z',
+  updated_at: now,
+  closed_at: '2016-08-19T12:48:43Z',
+  author_association: 'NONE',
+  body: null,
+};
 export const issue257Timeline = [
   {
     id: 1073560592,
@@ -577,51 +449,31 @@ export const issue257Timeline = [
   },
 ];
 
-export const issue258Timeline = [
-  {
-    id: 1073560592,
-    node_id: 'MDEyOpxhvmVsZWRFdmVudDEwNzM1NjA1OTE=',
-    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560592',
-    actor: { login: 'octocat', id: 583231, node_id: 'MDQ6VXNlcjU4MzIzMQ==', type: 'User', site_admin: !1 },
-    event: 'labeled',
-    commit_id: null,
-    commit_url: null,
-    created_at: '2016-08-19T12:48:44Z',
-    label: { name: 'closing-soon', color: 'c5def5' },
-  },
-];
-
-export const issue259Timeline = [
-  {
-    id: 1073560592,
-    node_id: 'MDEyOpxhvmVsZWRFdmVudDEwNzM1NjA1OTE=',
-    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560592',
-    actor: { login: 'octocat', id: 583231, node_id: 'MDQ6VXNlcjU4MzIzMQ==', type: 'User', site_admin: !1 },
-    event: 'labeled',
-    commit_id: null,
-    commit_url: null,
-    created_at: now,
-    label: { name: 'closing-soon', color: 'c5def5' },
-  },
-];
-
-export const issue261Timeline = [
-  {
-    id: 1073560592,
-    node_id: 'MDEyOpxhvmVsZWRFdmVudDEwNzM1NjA1OTE=',
-    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560592',
-    actor: { login: 'octocat', id: 583231, node_id: 'MDQ6VXNlcjU4MzIzMQ==', type: 'User', site_admin: !1 },
-    event: 'labeled',
-    commit_id: null,
-    commit_url: null,
-    // created_at: new Date(Date.parse(now) - 864e5 * process.env.DAYS_BEFORE_STALE).toISOString(),
-    created_at: new Date(
-      Date.parse(now) - 864e5 * Number.parseFloat(process.env.DAYS_BEFORE_STALE ?? '0'),
-    ).toISOString(),
-    label: { name: 'response-requested', color: 'c5def5' },
-  },
-];
-
+/**
+ * Issue 262: A response-requested issue that got a comment before the closing-soon label was added
+ */
+export const issue262 = {
+  url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/262',
+  id: 179915562,
+  node_id: 'MDU62XNzd6Ux7zIxMTU1NjI=',
+  number: 262,
+  title: 'Comments happened',
+  labels: [
+    {
+      id: 600797884,
+      node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
+      url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
+      name: 'response-requested',
+    },
+  ],
+  state: 'open',
+  comments: 1,
+  created_at: '2016-08-19T11:57:17Z',
+  updated_at: now,
+  closed_at: '2016-08-19T12:48:43Z',
+  author_association: 'NONE',
+  body: null,
+};
 export const issue262Timeline = [
   {
     id: 1073560592,
@@ -665,6 +517,70 @@ export const issue262Timeline = [
   },
 ];
 
+/**
+ * Issue 261: A response-requested issue that is ready for the closing-soon label
+ */
+export const issue261 = {
+  url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/261',
+  id: 172115561,
+  node_id: 'MDU6SXNzd6Ux7zIxMTU1NjI=',
+  number: 261,
+  title: 'Mark me stale',
+  labels: [
+    {
+      id: 600797884,
+      node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
+      url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
+      name: 'response-requested',
+    },
+  ],
+  state: 'open',
+  comments: 1,
+  created_at: new Date(Date.parse(now) - 864e5 * Number.parseFloat(actionInputs.DAYS_BEFORE_STALE)).toISOString(),
+  updated_at: new Date(Date.parse(now) - 864e5 * Number.parseFloat(actionInputs.DAYS_BEFORE_STALE)).toISOString(),
+  closed_at: '2016-08-19T12:48:43Z',
+  author_association: 'NONE',
+  body: null,
+};
+export const issue261Timeline = [
+  {
+    id: 1073560592,
+    node_id: 'MDEyOpxhvmVsZWRFdmVudDEwNzM1NjA1OTE=',
+    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560592',
+    actor: { login: 'octocat', id: 583231, node_id: 'MDQ6VXNlcjU4MzIzMQ==', type: 'User', site_admin: !1 },
+    event: 'labeled',
+    commit_id: null,
+    commit_url: null,
+    created_at: new Date(Date.parse(now) - 864e5 * Number.parseFloat(actionInputs.DAYS_BEFORE_STALE)).toISOString(),
+    label: { name: 'response-requested', color: 'c5def5' },
+  },
+];
+
+/**
+ * Issue 263: A response-requested issue that should not be touched. The stale timer has not expired
+ */
+export const issue263 = {
+  url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/263',
+  id: 179916362,
+  node_id: 'MDU62X63d6Ux7zIxMTU1NjI=',
+  number: 263,
+  title: 'Keep me open',
+  labels: [
+    {
+      id: 600797884,
+      node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
+      url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
+      name: 'response-requested',
+    },
+  ],
+  state: 'open',
+  comments: 0,
+  created_at: '2016-08-19T11:57:17Z',
+  updated_at: now,
+  closed_at: '2016-08-19T12:48:43Z',
+  author_association: 'NONE',
+  body: null,
+};
 export const issue263Timeline = [
   {
     id: 1073560592,
@@ -679,62 +595,98 @@ export const issue263Timeline = [
   },
 ];
 
-export const issue256Reply = {
-  url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/256',
-  id: 172115562,
-  node_id: 'MDU6SXNzdWUxNzIxMTU1NjI=',
-  number: 256,
-  title: 'Exempt?',
+/**
+ * Issue 258: An issue that has closing-soon and is ready for final closure
+ */
+export const issue258 = {
+  url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/258',
+  id: 172115587,
+  node_id: 'MD86SXNzdWUx7zIxMTU1NjI=',
+  number: 258,
+  title: 'Stale and close',
   labels: [
     {
-      id: 600797884,
+      id: 600797885,
       node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
-      url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/go-away-bot',
-      name: 'go-away-bot',
+      url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/closing-soon',
+      name: 'closing-soon',
     },
   ],
   state: 'open',
   comments: 0,
   created_at: '2016-08-19T11:57:17Z',
-  updated_at: '2017-05-08T21:20:09Z',
+  updated_at: '2016-08-19T12:48:44Z',
   closed_at: '2016-08-19T12:48:43Z',
   author_association: 'NONE',
   body: null,
 };
-
-export const issue121Reply = {
-  url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/121',
-  id: 677599418,
-  node_id: 'MDU6SXNzdWU2Nzc1OTk0MTg=',
-  number: 121,
-  title: 'Exempt too?',
-  labels: [
-    {
-      id: 743820433,
-      node_id: 'MDU6TGFiZWw3NDM4MjA0Mw=',
-      url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/help-wanted',
-      name: 'help-wanted',
-    },
-  ],
-  state: 'open',
-  comments: 0,
-  created_at: '2018-08-12T11:03:19Z',
-  updated_at: '2018-08-15T11:07:32Z',
-  closed_at: null,
-  author_association: 'NONE',
-  body: null,
-};
-
-export const issue121Timeline = [
+export const issue258Timeline = [
   {
-    id: 3647155910,
-    node_id: 'MDEyOkxhYmVsZWRFdmVudDM2NDcxNTU5MTA=',
-    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/3647155910',
+    id: 1073560592,
+    node_id: 'MDEyOpxhvmVsZWRFdmVudDEwNzM1NjA1OTE=',
+    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560592',
     actor: { login: 'octocat', id: 583231, node_id: 'MDQ6VXNlcjU4MzIzMQ==', type: 'User', site_admin: !1 },
     event: 'labeled',
     commit_id: null,
     commit_url: null,
-    created_at: '2016-08-19T11:57:18Z',
-    label: { name: 'help-wanted', color: '008672' },
+    created_at: '2016-08-19T12:48:44Z',
+    label: { name: 'closing-soon', color: 'c5def5' },
   },
 ];
+
+/**
+ * Issue 259: A closing-soon issue that should remain open. The timer has not expired
+ */
+export const issue259 = {
+  url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/259',
+  id: 172115559,
+  node_id: 'MD86SXNzdWUx759xMTU1NjI=',
+  number: 259,
+  title: 'Stale no close',
+  labels: [
+    {
+      id: 600797885,
+      node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
+      url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/closing-soon',
+      name: 'closing-soon',
+    },
+  ],
+  state: 'open',
+  comments: 0,
+  created_at: '2016-08-19T11:57:17Z',
+  updated_at: now,
+  closed_at: '2016-08-19T12:48:43Z',
+  author_association: 'NONE',
+  body: null,
+};
+export const issue259Timeline = [
+  {
+    id: 1073560592,
+    node_id: 'MDEyOpxhvmVsZWRFdmVudDEwNzM1NjA1OTE=',
+    url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/events/1073560592',
+    actor: { login: 'octocat', id: 583231, node_id: 'MDQ6VXNlcjU4MzIzMQ==', type: 'User', site_admin: !1 },
+    event: 'labeled',
+    commit_id: null,
+    commit_url: null,
+    created_at: now,
+    label: { name: 'closing-soon', color: 'c5def5' },
+  },
+];
+
+/**
+ * Issue 299: An issue that is ancient and should be closed
+ */
+export const issue299 = {
+  url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299',
+  id: 172115599,
+  node_id: 'MDU6SXNzdWUxNzIx9TU1NjI=',
+  number: 299,
+  title: 'Ancient',
+  state: 'open',
+  comments: 0,
+  created_at: '2016-08-19T11:57:17Z',
+  updated_at: '2016-08-19T11:57:17Z',
+  closed_at: '2016-08-19T12:48:43Z',
+  author_association: 'NONE',
+  body: null,
+};

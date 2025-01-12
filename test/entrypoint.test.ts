@@ -1,92 +1,57 @@
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { config } from 'dotenv';
+import os from 'node:os';
+import * as core from '@actions/core';
 import nock from 'nock';
-import { type MockInstance, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getAndValidateInputs, run } from '../src/entrypoint';
-import { revCompareEventsByDate } from '../src/utils';
-import * as mockinputs from './mockinputs';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import * as entrypoint from '../src/entrypoint.ts';
+import * as github from '../src/github.ts';
+import * as mockinputs from './mockinputs.ts';
+const OLD_ENV = process.env;
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+/*
+ * API call order (if all messages are set):
+ * 1. GET /repos/{owner}/{repo}/issues?state=open&labels=response-requested&per_page=100
+ * 2. GET /repos/{owner}/{repo}/issues?state=open&labels=closing-soon&per_page=100
+ * 3. GET /repos/{owner}/{repo}/issues?state=open&labels=stale-pr&per_page=100
+ * 4. GET /repos/{owner}/{repo}/issues?state=open&sort=updated&direction=asc&per_page=100
+ * 5. Issue specific API calls (get timeline, add comment, add label, remove label)
+ */
 
-// nock.debug = true;
-nock.disableNetConnect();
-// nock.activate();
-
-config({
-  path: resolve(__dirname, '.env.test'),
-});
-
-describe('GitHub issue parser', {}, () => {
-  const OLD_ENV = process.env;
-  const now = '2019-12-31T00:00:00.000Z';
-  let mockDate: MockInstance<() => number>;
-
+/*
+  1. If would take an action on an issue, but it has an exempt label, do nothing
+  2. If an issue has rr and cs and it gets a comment, remove rr and cs
+  3. If an issue has rr and no cs and it gets a comment, remove rr
+  4. If an issue has rr and no cs and the stale timer is up, add stale message and apply cs
+  5. If an issue has rr and no cs but the stale timer is not up, do nothing
+  6. If an issue has rr and cs and the close timer is up, apply cfs, close issue
+  7. If an issue has rr and cs but the close timer is not up, do nothing
+  8. If an issue is older than ancient timer, add ancient message and stale it
+  9. If the issue messages are empty, skip that issue type
+*/
+describe('Issue tests', {}, () => {
   beforeEach(() => {
-    vi.resetModules();
-    mockDate = vi.spyOn(global.Date, 'now').mockImplementation(() => new Date(now).getTime());
-    process.env = { ...OLD_ENV };
+    vi.restoreAllMocks();
+    // GitHub tries to read the Windows version to populate the user-agent header, but this fails in some test
+    // environments.
+    vi.spyOn(os, 'platform').mockImplementation(() => 'linux');
+    vi.spyOn(os, 'release').mockImplementation(() => '1.0');
+    // Mock core functions
+    vi.spyOn(core, 'setFailed').mockImplementation(console.error);
+    vi.spyOn(core, 'error').mockImplementation(() => {});
+    vi.spyOn(core, 'debug').mockImplementation(() => {});
+    vi.spyOn(core, 'info').mockImplementation(() => {});
+    // GitHub Actions uses environment vars to store action inputs
+    process.env = Object.assign(OLD_ENV, { ...mockinputs.actionInputs });
+    vi.spyOn(github, 'removeLabel');
+    vi.spyOn(github, 'markStale');
+    vi.spyOn(github, 'closeIssue');
   });
-
   afterEach(() => {
+    // Reest env and terminate any pending nocks
     process.env = OLD_ENV;
-    mockDate.mockRestore();
-    if (!nock.isDone()) {
-      nock.cleanAll();
-    }
+    if (!nock.isDone()) nock.cleanAll();
   });
 
-  it('reads env vars', () => {
-    expect(getAndValidateInputs()).toEqual({
-      repoToken: process.env.REPO_TOKEN ?? '',
-      ancientIssueMessage: process.env.ANCIENT_ISSUE_MESSAGE ?? '',
-      ancientPrMessage: process.env.ANCIENT_PR_MESSAGE ?? '',
-      staleIssueMessage: process.env.STALE_ISSUE_MESSAGE ?? '',
-      stalePrMessage: process.env.STALE_PR_MESSAGE ?? '',
-      daysBeforeStale: Number.parseFloat(process.env.DAYS_BEFORE_STALE ?? '0'),
-      daysBeforeClose: Number.parseFloat(process.env.DAYS_BEFORE_CLOSE ?? '0'),
-      daysBeforeAncient: Number.parseFloat(process.env.DAYS_BEFORE_ANCIENT ?? '0'),
-      staleIssueLabel: process.env.STALE_ISSUE_LABEL ?? '',
-      exemptIssueLabels: process.env.EXEMPT_ISSUE_LABELS ?? '',
-      stalePrLabel: process.env.STALE_PR_LABEL ?? '',
-      exemptPrLabels: process.env.EXEMPT_PR_LABELS ?? '',
-      cfsLabel: process.env.CFS_LABEL ?? '',
-      issueTypes: (process.env.ISSUE_TYPES ?? '').split(','),
-      responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL ?? '',
-      minimumUpvotesToExempt: Number.parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT ?? '0'),
-      dryrun: String(process.env.DRYRUN).toLowerCase() === 'true',
-      useCreatedDateForAncient: String(process.env.USE_CREATED_DATE_FOR_ANCIENT).toLowerCase() === 'true',
-    });
-  });
-
-  it('handles bogus inputs', () => {
-    process.env.DAYS_BEFORE_ANCIENT = 'asdf';
-    expect(() => {
-      getAndValidateInputs();
-    }).toThrow();
-    process.env.DAYS_BEFORE_ANCIENT = OLD_ENV.DAYS_EFORE_ANCIENT;
-    process.env.DAYS_BEFORE_STALE = 'asdf';
-    expect(() => {
-      getAndValidateInputs();
-    }).toThrow();
-    process.env.DAYS_BEFORE_STALE = OLD_ENV.DAYS_BEFORE_STALE;
-    process.env.DAYS_BEFORE_CLOSE = 'asdf';
-    expect(() => {
-      getAndValidateInputs();
-    }).toThrow();
-    process.env.DAYS_BEFORE_CLOSE = OLD_ENV.DAYS_BEFORE_CLOSE;
-  });
-
-  it('compares dates in reverse', () => {
-    const dateA = '2018-12-31T00:00:00.000Z';
-    const dateB = now;
-    const eventA = { created_at: dateA };
-    const eventB = { created_at: dateB };
-    expect(revCompareEventsByDate(eventA, eventB)).toBe(1);
-    expect(revCompareEventsByDate(eventB, eventA)).toBe(-1);
-  });
-
-  it('skips issue with empty messages', async () => {
+  it('Skips issues with exempt labels', {}, async () => {
     nock('https://api.github.com')
       .get('/repos/aws-actions/stale-issue-cleanup/issues')
       .query({
@@ -94,365 +59,282 @@ describe('GitHub issue parser', {}, () => {
         labels: process.env.RESPONSE_REQUESTED_LABEL,
         per_page: 100,
       })
-      .reply(200, []);
-    process.env.ANCIENT_ISSUE_MESSAGE = '';
-    process.env.STALE_ISSUE_MESSAGE = '';
-    process.env.STALE_PR_MESSAGE = '';
-    process.env.ISSUE_TYPES = 'issues,pull_requests';
-    await run();
-    process.env.STALE_ISSUE_MESSAGE = OLD_ENV.STALE_ISSUE_MESSAGE;
-    process.env.ANCIENT_ISSUE_MESSAGE = OLD_ENV.ANCIENT_ISSUE_MESSAGE;
-    process.env.STALE_PR_MESSAGE = OLD_ENV.STALE_PR_LABEL;
+      .reply(200, [mockinputs.issue256])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline?per_page=100')
+      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+      .reply(200, [...mockinputs.issue256Timeline]);
+    await entrypoint.run();
+    expect(core.debug).toHaveBeenLastCalledWith('issue contains exempt label');
   });
-
-  it('consumes the GitHub API', async () => {
-    // nock.enableDebug();
-
-    const scope = nock('https://api.github.com')
+  it('Removes rr and cs labels when an issue is commented on', {}, async () => {
+    nock('https://api.github.com')
       .get('/repos/aws-actions/stale-issue-cleanup/issues')
       .query({
         state: 'open',
         labels: process.env.RESPONSE_REQUESTED_LABEL,
         per_page: 100,
       })
-      .reply(200, mockinputs.responseRequestedReplies)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues')
-      .query({
-        state: 'open',
-        labels: process.env.STALE_ISSUE_LABEL,
-        per_page: 100,
-      })
-      .reply(200, mockinputs.staleIssueReplies)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues')
-      .query({
-        state: 'open',
-        labels: process.env.STALE_PR_LABEL,
-        per_page: 100,
-      })
+      .reply(200, [mockinputs.issue257])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
       .reply(200, [])
-
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/257/timeline?per_page=100')
+      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+      .reply(200, [...mockinputs.issue257Timeline])
       .delete('/repos/aws-actions/stale-issue-cleanup/issues/257/labels/closing-soon')
       .reply(204, {})
-
       .delete('/repos/aws-actions/stale-issue-cleanup/issues/257/labels/response-requested')
-      .reply(204, {})
-
-      .delete('/repos/aws-actions/stale-issue-cleanup/issues/258/labels/closing-soon')
-      .reply(204, {})
-
-      .patch('/repos/aws-actions/stale-issue-cleanup/issues/258')
-      .reply(200, {})
-
+      .reply(204, {});
+    await entrypoint.run();
+    expect(github.removeLabel).toHaveBeenCalledTimes(2);
+  });
+  it('Removes rr label when an issue is commented on and cs is not present', {}, async () => {
+    nock('https://api.github.com')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues')
+      .query({
+        state: 'open',
+        labels: process.env.RESPONSE_REQUESTED_LABEL,
+        per_page: 100,
+      })
+      .reply(200, [mockinputs.issue262])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/262/timeline?per_page=100')
+      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+      .reply(200, [...mockinputs.issue262Timeline])
+      .delete('/repos/aws-actions/stale-issue-cleanup/issues/262/labels/response-requested')
+      .reply(204, {});
+    await entrypoint.run();
+    expect(github.removeLabel).toHaveBeenCalledTimes(1);
+  });
+  it('Adds closing-soon label and stale message when an issue is stale', {}, async () => {
+    nock('https://api.github.com')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues')
+      .query({
+        state: 'open',
+        labels: process.env.RESPONSE_REQUESTED_LABEL,
+        per_page: 100,
+      })
+      .reply(200, [mockinputs.issue261])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/261/timeline?per_page=100')
+      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+      .reply(200, [...mockinputs.issue261Timeline])
       .post('/repos/aws-actions/stale-issue-cleanup/issues/261/comments', {
         body: 'Stale issue message.',
       })
       .reply(201, {})
-
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/299/comments', {
-        body: 'Ancient issue message.',
-      })
-      .reply(201, {})
-
       .post('/repos/aws-actions/stale-issue-cleanup/issues/261/labels', {
         labels: ['closing-soon'],
       })
-      .reply(201, {})
-
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/258/labels', {
-        labels: ['closed-for-staleness'],
-      })
-      .reply(201, {})
-
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/299/labels', {
-        labels: ['closing-soon'],
-      })
-      .reply(201, {})
-
-      .delete('/repos/aws-actions/stale-issue-cleanup/issues/262/labels/response-requested')
-      .reply(204, {})
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue256Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/257/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue257Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/258/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue258Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/259/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue259Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/261/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue261Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/262/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue262Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/263/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue263Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/299/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, [])
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues')
-      .query({
-        state: 'open',
-        sort: 'updated',
-        direction: 'asc',
-        per_page: 100,
-      })
-      .reply(200, mockinputs.ancientIssueReplies)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/299/reactions')
-      .query({ per_page: 100 })
-      .reply(200, []);
-
-    await run();
-
-    expect(scope.isDone()).toEqual(true);
+      .reply(201, {});
+    await entrypoint.run();
+    expect(github.markStale).toHaveBeenCalledTimes(1);
   });
-});
-
-describe('GitHub issue parser', {}, () => {
-  const scope = nock('https://api.github.com');
-
-  beforeEach(() => {
-    scope
+  it('Does nothing if an issue is not stale yet', {}, async () => {
+    nock('https://api.github.com')
       .get('/repos/aws-actions/stale-issue-cleanup/issues')
       .query({
         state: 'open',
         labels: process.env.RESPONSE_REQUESTED_LABEL,
         per_page: 100,
       })
+      .reply(200, [mockinputs.issue263])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
       .reply(200, [])
-
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/263/timeline?per_page=100')
+      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+      .reply(200, [...mockinputs.issue263Timeline]);
+    await entrypoint.run();
+    expect(github.markStale).not.toHaveBeenCalled();
+  });
+  it('Closes issues once close timer is up', {}, async () => {
+    nock('https://api.github.com')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
+      .reply(200, [mockinputs.issue258])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/258/timeline?per_page=100')
+      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+      .reply(200, [...mockinputs.issue258Timeline])
+      .delete('/repos/aws-actions/stale-issue-cleanup/issues/258/labels/closing-soon')
+      .reply(204, {})
+      .patch('/repos/aws-actions/stale-issue-cleanup/issues/258')
+      .reply(200, {})
+      .post('/repos/aws-actions/stale-issue-cleanup/issues/258/labels', {
+        labels: ['closed-for-staleness'],
+      })
+      .reply(201, {});
+    await entrypoint.run();
+    expect(github.closeIssue).toHaveBeenCalledTimes(1);
+    expect(github.removeLabel).toHaveBeenCalledTimes(1);
+  });
+  it('Does nothing if the close timer is not up yet', {}, async () => {
+    nock('https://api.github.com')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
+      .reply(200, [mockinputs.issue259])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/259/timeline?per_page=100')
+      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+      .reply(200, [...mockinputs.issue259Timeline]);
+    await entrypoint.run();
+    expect(github.closeIssue).not.toHaveBeenCalled();
+  });
+  it('Stales ancient issues with insufficient upvotes', {}, async () => {
+    nock('https://api.github.com')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
+      .reply(200, [mockinputs.issue299])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/299/timeline?per_page=100')
+      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/299/reactions?per_page=100')
+      .reply(200, [])
+      .post('/repos/aws-actions/stale-issue-cleanup/issues/299/comments', {
+        body: 'Ancient issue message.',
+      })
+      .reply(201, {})
+      .post('/repos/aws-actions/stale-issue-cleanup/issues/299/labels', {
+        labels: ['closing-soon'],
+      })
+      .reply(201, {});
+    await entrypoint.run();
+    expect(github.markStale).toHaveBeenCalledTimes(1);
+  });
+  it('Skips issues if empty messages were configured', {}, async () => {
+    nock('https://api.github.com')
       .get('/repos/aws-actions/stale-issue-cleanup/issues')
       .query({
         state: 'open',
-        labels: process.env.STALE_ISSUE_LABEL,
+        labels: process.env.RESPONSE_REQUESTED_LABEL,
         per_page: 100,
       })
+      .reply(200, [mockinputs.issue261])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
       .reply(200, [])
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues')
-      .query({
-        state: 'open',
-        labels: process.env.STALE_PR_LABEL,
-        per_page: 100,
-      })
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
       .reply(200, [])
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues')
-      .query({
-        state: 'open',
-        sort: 'updated',
-        direction: 'asc',
-        per_page: 100,
-      })
-      .reply(200, [mockinputs.issue256Reply, mockinputs.issue121Reply]);
-  });
-
-  afterEach(() => {
-    if (!nock.isDone()) {
-      nock.cleanAll();
-    }
-  });
-
-  it('no exempt label', async () => {
-    process.env.EXEMPT_ISSUE_LABELS = '';
-
-    scope
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/261/timeline?per_page=100')
       .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue256Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/256/reactions')
-      .query({ per_page: 100 })
-      .reply(200, [])
-
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/256/comments', {
-        body: 'Ancient issue message.',
+      .reply(200, [...mockinputs.issue261Timeline])
+      .post('/repos/aws-actions/stale-issue-cleanup/issues/261/comments', {
+        body: 'Stale issue message.',
       })
       .reply(201, {})
-
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/256/labels', {
-        labels: ['closing-soon'],
-      })
-      .reply(201, {})
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/121/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue121Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/121/reactions')
-      .query({ per_page: 100 })
-      .reply(200, [])
-
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/121/comments', {
-        body: 'Ancient issue message.',
-      })
-      .reply(201, {})
-
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/121/labels', {
+      .post('/repos/aws-actions/stale-issue-cleanup/issues/261/labels', {
         labels: ['closing-soon'],
       })
       .reply(201, {});
-
-    await run();
-
-    expect(scope.isDone()).toEqual(true);
-  });
-
-  it('one exempt label, but no issue has it', async () => {
-    process.env.EXEMPT_ISSUE_LABELS = 'no-auto-closure-please';
-
-    scope
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue256Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/256/reactions')
-      .query({ per_page: 100 })
-      .reply(200, [])
-
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/256/comments', {
-        body: 'Ancient issue message.',
-      })
-      .reply(201, {})
-
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/256/labels', {
-        labels: ['closing-soon'],
-      })
-      .reply(201, {})
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/121/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue121Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/121/reactions')
-      .query({ per_page: 100 })
-      .reply(200, [])
-
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/121/comments', {
-        body: 'Ancient issue message.',
-      })
-      .reply(201, {})
-
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/121/labels', {
-        labels: ['closing-soon'],
-      })
-      .reply(201, {});
-
-    await run();
-
-    expect(scope.isDone()).toEqual(true);
-  });
-
-  it('one exempt label, one issue has it', async () => {
-    process.env.EXEMPT_ISSUE_LABELS = 'go-away-bot';
-
-    scope
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue256Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/121/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue121Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/121/reactions')
-      .query({ per_page: 100 })
-      .reply(200, [])
-
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/121/comments', {
-        body: 'Ancient issue message.',
-      })
-      .reply(201, {})
-
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/121/labels', {
-        labels: ['closing-soon'],
-      })
-      .reply(201, {});
-
-    await run();
-
-    expect(scope.isDone()).toEqual(true);
-  });
-
-  it('two exempt labels, one issue has one of the labels', async () => {
-    process.env.EXEMPT_ISSUE_LABELS = 'go-away-bot, bot-stay-away';
-
-    scope
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue256Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/121/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue121Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/121/reactions')
-      .query({ per_page: 100 })
-      .reply(200, [])
-
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/121/comments', {
-        body: 'Ancient issue message.',
-      })
-      .reply(201, {})
-
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/121/labels', {
-        labels: ['closing-soon'],
-      })
-      .reply(201, {});
-
-    await run();
-
-    expect(scope.isDone()).toEqual(true);
-  });
-
-  it('two exempt labels, two issues have one label each', async () => {
-    process.env.EXEMPT_ISSUE_LABELS = 'help-wanted, go-away-bot';
-
-    scope
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue256Timeline)
-
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/121/timeline')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .query({ per_page: 100 })
-      .reply(200, mockinputs.issue121Timeline);
-
-    await run();
-
-    expect(scope.isDone()).toEqual(true);
+    const env = process.env;
+    process.env.STALE_ISSUE_MESSAGE = '';
+    process.env.ANCIENT_ISSUE_MESSAGE = '';
+    process.env.STALE_PR_MESSAGE = '';
+    await entrypoint.run();
+    process.env.STALE_ISSUE_MESSAGE = env.STALE_ISSUE_MESSAGE;
+    process.env.ANCIENT_ISSUE_MESSAGE = env.ANCIENT_ISSUE_MESSAGE;
+    process.env.STALE_PR_MESSAGE = env.STALE_PR_MESSAGE;
+    expect(github.markStale).not.toHaveBeenCalled();
   });
 });
+
+describe('Configuration tests', {}, () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    // GitHub tries to read the Windows version to populate the user-agent header, but this fails in some test
+    // environments.
+    vi.spyOn(os, 'platform').mockImplementation(() => 'linux');
+    vi.spyOn(os, 'release').mockImplementation(() => '1.0');
+    // Mock core functions
+    vi.spyOn(core, 'setFailed').mockImplementation(console.error);
+    vi.spyOn(core, 'error').mockImplementation(console.error);
+    vi.spyOn(core, 'debug').mockImplementation(() => {});
+    vi.spyOn(core, 'info').mockImplementation(() => {});
+    // GitHub Actions uses environment vars to store action inputs
+    process.env = Object.assign(OLD_ENV, { ...mockinputs.actionInputs });
+  });
+  afterEach(() => {
+    // Reest env
+    process.env = OLD_ENV;
+    if (!nock.isDone()) nock.cleanAll();
+  });
+
+  it('Reads and validates action inputs', {}, () => {
+    const inputs = entrypoint.getAndValidateInputs();
+    expect(inputs).toEqual({
+      repoToken: process.env.REPO_TOKEN,
+      ancientIssueMessage: process.env.ANCIENT_ISSUE_MESSAGE,
+      ancientPrMessage: process.env.ANCIENT_PR_MESSAGE,
+      dryrun: !!process.env.DRYRUN,
+      staleIssueMessage: process.env.STALE_ISSUE_MESSAGE,
+      stalePrMessage: process.env.STALE_PR_MESSAGE,
+      daysBeforeStale: Number.parseFloat(process.env.DAYS_BEFORE_STALE ?? '0'),
+      daysBeforeClose: Number.parseFloat(process.env.DAYS_BEFORE_CLOSE ?? '0'),
+      daysBeforeAncient: Number.parseFloat(process.env.DAYS_BEFORE_ANCIENT ?? '0'),
+      staleIssueLabel: process.env.STALE_ISSUE_LABEL,
+      exemptIssueLabels: process.env.EXEMPT_ISSUE_LABELS,
+      stalePrLabel: process.env.STALE_PR_LABEL,
+      exemptPrLabels: process.env.EXEMPT_PR_LABELS,
+      responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
+      minimumUpvotesToExempt: Number.parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT ?? '0'),
+      cfsLabel: process.env.CFS_LABEL,
+      issueTypes: process.env.ISSUE_TYPES?.split(','),
+      useCreatedDateForAncient: !!process.env.USE_CREATED_DATE_FOR_ANCIENT,
+    });
+  });
+  it('Handles bad inputs', {}, () => {
+    const env = process.env;
+    process.env.DAYS_BEFORE_ANCIENT = 'asdf';
+    expect(() => {
+      entrypoint.getAndValidateInputs();
+    }).toThrow();
+    process.env.DAYS_BEFORE_ANCIENT = env.DAYS_EFORE_ANCIENT;
+    process.env.DAYS_BEFORE_STALE = 'asdf';
+    expect(() => {
+      entrypoint.getAndValidateInputs();
+    }).toThrow();
+    process.env.DAYS_BEFORE_STALE = env.DAYS_BEFORE_STALE;
+    process.env.DAYS_BEFORE_CLOSE = 'asdf';
+    expect(() => {
+      entrypoint.getAndValidateInputs();
+    }).toThrow();
+  });
+});
+
