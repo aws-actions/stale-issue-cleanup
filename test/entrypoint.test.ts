@@ -5,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as entrypoint from '../src/entrypoint.ts';
 import * as github from '../src/github.ts';
 import * as mockinputs from './mockinputs.ts';
+import * as gh from '@actions/github';
+
 
 const OLD_ENV = process.env;
 
@@ -31,6 +33,8 @@ const OLD_ENV = process.env;
 describe('Issue tests', {}, () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.spyOn(console, 'log');
+
     // GitHub tries to read the Windows version to populate the user-agent header, but this fails in some test
     // environments.
     vi.spyOn(os, 'platform').mockImplementation(() => 'linux');
@@ -40,6 +44,7 @@ describe('Issue tests', {}, () => {
     vi.spyOn(core, 'error').mockImplementation(() => {});
     vi.spyOn(core, 'debug').mockImplementation(() => {});
     vi.spyOn(core, 'info').mockImplementation(() => {});
+    vi.spyOn(core, 'warning').mockImplementation(() => {});
     // GitHub Actions uses environment vars to store action inputs
     process.env = Object.assign(OLD_ENV, { ...mockinputs.actionInputs });
     vi.spyOn(github, 'removeLabel');
@@ -320,6 +325,7 @@ describe('Configuration tests', {}, () => {
       useCreatedDateForAncient: !!process.env.USE_CREATED_DATE_FOR_ANCIENT,
     });
   });
+
   it('Handles bad inputs', {}, () => {
     const env = process.env;
     process.env.DAYS_BEFORE_ANCIENT = 'asdf';
@@ -337,5 +343,72 @@ describe('Configuration tests', {}, () => {
       entrypoint.getAndValidateInputs();
     }).toThrow();
   });
-});
 
+  it('Skips pull requests when pull_requests not in issue-types', async () => {
+    const args: entrypoint.Inputs = {
+      repoToken: 'fake-token',
+      ancientIssueMessage: '',
+      ancientPrMessage: '',
+      staleIssueMessage: '',
+      stalePrMessage: '',
+      daysBeforeStale: 1,
+      daysBeforeClose: 1,
+      daysBeforeAncient: 1,
+      staleIssueLabel: 'stale',
+      exemptIssueLabels: '',
+      stalePrLabel: 'stale',
+      exemptPrLabels: '',
+      cfsLabel: '',
+      issueTypes: ['issues'],
+      responseRequestedLabel: '',
+      minimumUpvotesToExempt: 0,
+      dryrun: false,
+      useCreatedDateForAncient: false
+    };
+
+    const client = new gh.GitHub({ auth: args.repoToken });
+    
+    nock('https://api.github.com')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100')
+      .reply(200, [mockinputs.issue239]);
+
+    await entrypoint.processIssues(client, args);
+    
+    expect(core.debug).toContainEqual(['Issue is a pull request, which are excluded']);
+  });
+
+  it('Skips issues when issues not in issue-types', async () => {
+      const args: entrypoint.Inputs = {
+        repoToken: 'fake-token',
+        ancientIssueMessage: '',
+        ancientPrMessage: '',
+        staleIssueMessage: '',
+        stalePrMessage: '',
+        daysBeforeStale: 1,
+        daysBeforeClose: 1,
+        daysBeforeAncient: 1,
+        staleIssueLabel: 'stale',
+        exemptIssueLabels: '',
+        stalePrLabel: 'stale',
+        exemptPrLabels: '',
+        cfsLabel: '',
+        issueTypes: ['pull_request'],
+        responseRequestedLabel: '',
+        minimumUpvotesToExempt: 0,
+        dryrun: false,
+        useCreatedDateForAncient: false
+      };
+
+      const client = new gh.GitHub({ auth: args.repoToken });
+      
+      nock('https://api.github.com')
+        .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100')
+        .reply(200, [mockinputs.issue239]);
+    
+      await entrypoint.processIssues(client, args);
+      // core.debug(`found ${responseIssues.length} response-requested issues`)
+      expect(core.debug).toContainEqual(['Found 1 response-requested issues']);
+      expect(core.debug).toContainEqual(['Issue is an issue, which are excluded']);
+  });
+
+});

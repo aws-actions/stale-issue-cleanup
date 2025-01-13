@@ -62,7 +62,7 @@ export function getAndValidateInputs(): Inputs {
 
   return args;
 }
-async function processIssues(client: github.GitHub, args: Inputs) {
+export async function processIssues(client: github.GitHub, args: Inputs) {
   const uniqueIssues = await getIssues(client, args);
 
   for await (const _ of uniqueIssues.map(async (issue) => {
