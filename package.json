@@ -9,7 +9,8 @@
     "lint": "biome check --write src",
     "test": "npm run lint && vitest run",
     "build": "tsc",
-    "package": "npm run build && ncc build -m --license THIRD-PARTY -o dist && cp dist/THIRD-PARTY . && del-cli dist/THIRD-PARTY"
+    "package": "npm run build && ncc build -m --license THIRD-PARTY -o dist && cp dist/THIRD-PARTY . && del-cli dist/THIRD-PARTY",
+    "coverage": "vitest run --coverage"
   },
   "engines": {
     "node": ">=20"

@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as entrypoint from '../src/entrypoint.ts';
 import * as github from '../src/github.ts';
 import * as mockinputs from './mockinputs.ts';
+
 const OLD_ENV = process.env;
 
 /*
