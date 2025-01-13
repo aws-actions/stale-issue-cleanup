@@ -62,6 +62,7 @@ export function getAndValidateInputs(): Inputs {
 
   return args;
 }
+
 async function processIssues(client: github.GitHub, args: Inputs) {
   const uniqueIssues = await getIssues(client, args);
 
@@ -85,19 +86,18 @@ async function processIssues(client: github.GitHub, args: Inputs) {
       return;
     }
 
+
     const staleMessage = isPr ? args.stalePrMessage : args.staleIssueMessage;
-    /*
-    const ancientMessage = isPr
-      ? args.ancientPrMessage
-      : args.ancientIssueMessage;
-    */
     const ancientMessage = isPr ? args.ancientPrMessage : args.ancientIssueMessage;
 
     const staleLabel = isPr ? args.stalePrLabel : args.staleIssueLabel;
     const exemptLabels = parseCommaSeparatedString(isPr ? args.exemptPrLabels : args.exemptIssueLabels);
     const responseRequestedLabel = isPr ? args.responseRequestedLabel : args.responseRequestedLabel;
+    core.debug('Trying to get timeline events ');
 
     const issueTimelineEvents = await getTimelineEvents(client, issue);
+    core.debug('I got the timeline events!');
+
     const currentTime = new Date(Date.now());
 
     if (exemptLabels?.some((s) => isLabeled(issue, s))) {
@@ -105,6 +105,7 @@ async function processIssues(client: github.GitHub, args: Inputs) {
       core.debug('issue contains exempt label');
       return;
     }
+
 
     if (isLabeled(issue, staleLabel)) {
       core.debug('issue contains the stale label');
@@ -181,6 +182,7 @@ async function processIssues(client: github.GitHub, args: Inputs) {
         }
       }
     } else {
+      core.debug('asdasdkasf');
       const dateToCompare = args.useCreatedDateForAncient ? Date.parse(issue.created_at) : Date.parse(issue.updated_at);
       core.debug(
         `using issue ${args.useCreatedDateForAncient ? 'created date' : 'last updated'} to determine if the issue is ancient.`,
