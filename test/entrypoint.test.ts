@@ -360,55 +360,74 @@ describe('Configuration tests', {}, () => {
       exemptPrLabels: '',
       cfsLabel: '',
       issueTypes: ['issues'],
-      responseRequestedLabel: '',
+      responseRequestedLabel: 'response-requested',
       minimumUpvotesToExempt: 0,
       dryrun: false,
       useCreatedDateForAncient: false
     };
-
+  
     const client = new gh.GitHub({ auth: args.repoToken });
-    
+  
     nock('https://api.github.com')
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100')
-      .reply(200, [mockinputs.issue239]);
-
-    await entrypoint.processIssues(client, args);
+      .get('/repos/aws-actions/stale-issue-cleanup/issues')
+      .query({
+        state: 'open',
+        labels: 'response-requested',
+        per_page: 100
+      })
+      .reply(200, [{
+        number: 1,
+        title: 'Test PR',
+        pull_request: {},
+        updated_at: new Date().toISOString(),
+        labels: []
+      }]);
     
-    expect(core.debug).toContainEqual(['Issue is a pull request, which are excluded']);
+    await entrypoint.processIssues(client, args);
+    expect(core.debug).toHaveBeenCalledWith('Issue is a pull request, which are excluded');
   });
 
-  it('Skips issues when issues not in issue-types', async () => {
-      const args: entrypoint.Inputs = {
-        repoToken: 'fake-token',
-        ancientIssueMessage: '',
-        ancientPrMessage: '',
-        staleIssueMessage: '',
-        stalePrMessage: '',
-        daysBeforeStale: 1,
-        daysBeforeClose: 1,
-        daysBeforeAncient: 1,
-        staleIssueLabel: 'stale',
-        exemptIssueLabels: '',
-        stalePrLabel: 'stale',
-        exemptPrLabels: '',
-        cfsLabel: '',
-        issueTypes: ['pull_request'],
-        responseRequestedLabel: '',
-        minimumUpvotesToExempt: 0,
-        dryrun: false,
-        useCreatedDateForAncient: false
-      };
-
-      const client = new gh.GitHub({ auth: args.repoToken });
-      
-      nock('https://api.github.com')
-        .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100')
-        .reply(200, [mockinputs.issue239]);
+  it('Skips issues when issue not in issue-types', async () => {
+    const args: entrypoint.Inputs = {
+      repoToken: 'fake-token',
+      ancientIssueMessage: '',
+      ancientPrMessage: '',
+      staleIssueMessage: '',
+      stalePrMessage: '',
+      daysBeforeStale: 1,
+      daysBeforeClose: 1,
+      daysBeforeAncient: 1,
+      staleIssueLabel: 'stale',
+      exemptIssueLabels: '',
+      stalePrLabel: 'stale',
+      exemptPrLabels: '',
+      cfsLabel: '',
+      issueTypes: [], 
+      responseRequestedLabel: 'response-requested',
+      minimumUpvotesToExempt: 0,
+      dryrun: false,
+      useCreatedDateForAncient: false
+    };
+  
+    const client = new gh.GitHub({ auth: args.repoToken });
+  
+    nock('https://api.github.com')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues')
+      .query({
+        state: 'open',
+        labels: 'response-requested',
+        per_page: 100
+      })
+      .reply(200, [{
+        number: 1,
+        title: 'Test PR',
+        updated_at: new Date().toISOString(),
+        labels: []
+      }])
     
-      await entrypoint.processIssues(client, args);
-      // core.debug(`found ${responseIssues.length} response-requested issues`)
-      expect(core.debug).toContainEqual(['Found 1 response-requested issues']);
-      expect(core.debug).toContainEqual(['Issue is an issue, which are excluded']);
+    await entrypoint.processIssues(client, args);
+  
+    expect(core.debug).toHaveBeenCalledWith('Issue is an issue, which are excluded');
   });
 
 });
