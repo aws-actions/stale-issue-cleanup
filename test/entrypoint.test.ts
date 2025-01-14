@@ -279,6 +279,32 @@ describe('Issue tests', {}, () => {
     process.env.STALE_PR_MESSAGE = env.STALE_PR_MESSAGE;
     expect(github.markStale).not.toHaveBeenCalled();
   });
+  it('Does not stale ancient issues with sufficient upvotes', {}, async () => {
+    nock('https://api.github.com')
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
+      .reply(200, [mockinputs.issue242])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/242/timeline?per_page=100')
+      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
+      .reply(200, [])
+      .get('/repos/aws-actions/stale-issue-cleanup/issues/242/reactions?per_page=100')
+      .reply(200, [mockinputs.issue242Reactions])
+      .post('/repos/aws-actions/stale-issue-cleanup/issues/242/comments', {
+        body: 'Ancient issue message.',
+      })
+      .reply(201, {})
+      .post('/repos/aws-actions/stale-issue-cleanup/issues/242/labels', {
+        labels: ['closing-soon'],
+      })
+      .reply(201, {});
+    await entrypoint.run();
+    expect(core.debug).toHaveBeenCalledWith('issue is ancient but has enough upvotes to exempt');
+  });
 });
 
 describe('Configuration tests', {}, () => {

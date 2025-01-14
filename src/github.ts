@@ -147,14 +147,17 @@ export async function hasEnoughUpvotes(
     mediaType: { previews: ['squirrel-girl-preview'] },
     per_page: 100,
   });
-  const reactions = await client.paginate(options);
+  let reactions = await client.paginate(options);
+  //for some reason, the client.paginate thing returns an Array containing an Array containing reactions.
+  //we only want the inner Array.
+  reactions = reactions[0];
   if (reactions && reactions.length > 0) {
     const upvotes = reactions.reduce((acc: number, cur: { content: string }) => {
       if (cur.content === '+1' || cur.content === 'heart' || cur.content === 'hooray' || cur.content === 'rocket') {
         return acc + 1;
       }
       return acc;
-    });
+    }, 0);
     return upvotes >= upvoteCount;
   }
   return false;

@@ -62,7 +62,8 @@ export function getAndValidateInputs(): Inputs {
 
   return args;
 }
-export async function processIssues(client: github.GitHub, args: Inputs) {
+
+async function processIssues(client: github.GitHub, args: Inputs) {
   const uniqueIssues = await getIssues(client, args);
 
   for await (const _ of uniqueIssues.map(async (issue) => {
@@ -85,12 +86,8 @@ export async function processIssues(client: github.GitHub, args: Inputs) {
       return;
     }
 
+
     const staleMessage = isPr ? args.stalePrMessage : args.staleIssueMessage;
-    /*
-    const ancientMessage = isPr
-      ? args.ancientPrMessage
-      : args.ancientIssueMessage;
-    */
     const ancientMessage = isPr ? args.ancientPrMessage : args.ancientIssueMessage;
 
     const staleLabel = isPr ? args.stalePrLabel : args.staleIssueLabel;
@@ -98,6 +95,7 @@ export async function processIssues(client: github.GitHub, args: Inputs) {
     const responseRequestedLabel = isPr ? args.responseRequestedLabel : args.responseRequestedLabel;
 
     const issueTimelineEvents = await getTimelineEvents(client, issue);
+
     const currentTime = new Date(Date.now());
 
     if (exemptLabels?.some((s) => isLabeled(issue, s))) {
@@ -105,6 +103,7 @@ export async function processIssues(client: github.GitHub, args: Inputs) {
       core.debug('issue contains exempt label');
       return;
     }
+
 
     if (isLabeled(issue, staleLabel)) {
       core.debug('issue contains the stale label');

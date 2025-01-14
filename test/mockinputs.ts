@@ -351,7 +351,7 @@ export const issue256 = {
       node_id: 'MDU6TGFiZWw2MDA3OTc4ODQ=',
       url: 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/labels/response-requested',
       name: 'response-requested',
-    }
+    },
   ],
   state: 'open',
   comments: 0,
