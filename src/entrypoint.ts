@@ -93,10 +93,8 @@ async function processIssues(client: github.GitHub, args: Inputs) {
     const staleLabel = isPr ? args.stalePrLabel : args.staleIssueLabel;
     const exemptLabels = parseCommaSeparatedString(isPr ? args.exemptPrLabels : args.exemptIssueLabels);
     const responseRequestedLabel = isPr ? args.responseRequestedLabel : args.responseRequestedLabel;
-    core.debug('Trying to get timeline events ');
 
     const issueTimelineEvents = await getTimelineEvents(client, issue);
-    core.debug('I got the timeline events!');
 
     const currentTime = new Date(Date.now());
 
@@ -182,7 +180,6 @@ async function processIssues(client: github.GitHub, args: Inputs) {
         }
       }
     } else {
-      core.debug('asdasdkasf');
       const dateToCompare = args.useCreatedDateForAncient ? Date.parse(issue.created_at) : Date.parse(issue.updated_at);
       core.debug(
         `using issue ${args.useCreatedDateForAncient ? 'created date' : 'last updated'} to determine if the issue is ancient.`,

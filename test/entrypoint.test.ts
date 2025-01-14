@@ -274,7 +274,7 @@ describe('Issue tests', {}, () => {
     process.env.STALE_PR_MESSAGE = env.STALE_PR_MESSAGE;
     expect(github.markStale).not.toHaveBeenCalled();
   });
-  it('Ignores ancient issues with sufficient upvotes', {}, async () => {
+  it('Does not stale ancient issues with sufficient upvotes', {}, async () => {
     nock('https://api.github.com')
       .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100')
       .reply(200, [])
@@ -288,7 +288,7 @@ describe('Issue tests', {}, () => {
       .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
       .reply(200, [])
       .get('/repos/aws-actions/stale-issue-cleanup/issues/242/reactions?per_page=100')
-      .reply(200, [])
+      .reply(200, [mockinputs.issue242Reactions])
       .post('/repos/aws-actions/stale-issue-cleanup/issues/242/comments', {
         body: 'Ancient issue message.',
       })
