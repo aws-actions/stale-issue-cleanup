@@ -63,7 +63,7 @@ export function getAndValidateInputs(): Inputs {
   return args;
 }
 
-async function processIssues(client: github.GitHub, args: Inputs) {
+export async function processIssues(client: github.GitHub, args: Inputs) {
   const uniqueIssues = await getIssues(client, args);
 
   for await (const _ of uniqueIssues.map(async (issue) => {
@@ -86,7 +86,6 @@ async function processIssues(client: github.GitHub, args: Inputs) {
       return;
     }
 
-
     const staleMessage = isPr ? args.stalePrMessage : args.staleIssueMessage;
     const ancientMessage = isPr ? args.ancientPrMessage : args.ancientIssueMessage;
 
@@ -103,7 +102,6 @@ async function processIssues(client: github.GitHub, args: Inputs) {
       core.debug('issue contains exempt label');
       return;
     }
-
 
     if (isLabeled(issue, staleLabel)) {
       core.debug('issue contains the stale label');
