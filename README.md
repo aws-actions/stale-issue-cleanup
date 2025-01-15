@@ -10,28 +10,13 @@ once the issue sees new activity.
 
 Install dependencies
 ```bash
-$ yarn install
+$ npm install
 ```
 
 Run unit tests
 ```bash
-$ yarn test
+$ npm run test
 ```
-
-### Local Integ Testing with Docker
-
-This action is using Docker, so you can test it locally in dry run mode if you
-wish.
-
-```bash
-$ docker build -t stale-issue-cleanup .
-$ docker run --label stale-issue-cleanup --env-file test/local-docker.env stale-issue-cleanup
-```
-
-Check out [local-docker.env](./test/local-docker.env) to configure your local
-testing options. Once you're satisfied that it's working the way you expect,
-you can create a workflow file and implement this as an action on your repo.
-
 
 ## Usage
 
@@ -84,7 +69,7 @@ steps:
 **NOTE:** For stability, you should use the action with either an
 explicit tag, or commit SHA:
 
-`uses: aws-actions/stale-issue-cleanup@v3` 
+`uses: aws-actions/stale-issue-cleanup@v7` 
 
 ## License Summary
 
