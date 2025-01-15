@@ -1,21 +1,24 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
+import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
 import type { Inputs } from './entrypoint';
 import type { issueTimelineEventsType, issueType } from './utils';
 
 const MS_PER_DAY = 86400000;
 
-export async function closeIssue(client: github.GitHub, issue: issueType, cfsLabel: string) {
+type IssueResponse = RestEndpointMethodTypes['issues']['listForRepo']['response']['data'][number];
+
+export async function closeIssue(client: ReturnType<typeof github.getOctokit>, issue: issueType, cfsLabel: string) {
   core.debug(`closing issue #${issue.number} for staleness`);
   if (cfsLabel && cfsLabel !== '') {
-    await client.issues.addLabels({
+    await client.rest.issues.addLabels({
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       issue_number: issue.number,
       labels: [cfsLabel],
     });
   }
-  await client.issues.update({
+  await client.rest.issues.update({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     issue_number: issue.number,
@@ -23,9 +26,9 @@ export async function closeIssue(client: github.GitHub, issue: issueType, cfsLab
   });
 }
 
-export async function removeLabel(client: github.GitHub, issue: issueType, label: string) {
+export async function removeLabel(client: ReturnType<typeof github.getOctokit>, issue: issueType, label: string) {
   core.debug(`removing label ${label} from issue #${issue.number}`);
-  await client.issues.removeLabel({
+  await client.rest.issues.removeLabel({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     issue_number: issue.number,
@@ -33,15 +36,20 @@ export async function removeLabel(client: github.GitHub, issue: issueType, label
   });
 }
 
-export async function markStale(client: github.GitHub, issue: issueType, staleMessage: string, staleLabel: string) {
+export async function markStale(
+  client: ReturnType<typeof github.getOctokit>,
+  issue: issueType,
+  staleMessage: string,
+  staleLabel: string,
+) {
   core.debug(`marking issue #${issue.number} as stale`);
-  await client.issues.createComment({
+  await client.rest.issues.createComment({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     issue_number: issue.number,
     body: staleMessage,
   });
-  await client.issues.addLabels({
+  await client.rest.issues.addLabels({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     issue_number: issue.number,
@@ -49,55 +57,57 @@ export async function markStale(client: github.GitHub, issue: issueType, staleMe
   });
 }
 
-export async function getTimelineEvents(client: github.GitHub, issue: issueType): Promise<issueTimelineEventsType[]> {
-  const options = client.issues.listEventsForTimeline.endpoint.merge({
+export async function getTimelineEvents(
+  client: ReturnType<typeof github.getOctokit>,
+  issue: issueType,
+): Promise<issueTimelineEventsType[]> {
+  return client.paginate(client.rest.issues.listEventsForTimeline, {
     issue_number: issue.number,
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     per_page: 100,
   });
-  return client.paginate(options);
 }
 
-export async function getIssues(client: github.GitHub, args: Inputs): Promise<Array<issueType>> {
-  let responseIssues = [];
-  let staleIssues = [];
-  let stalePrs = [];
-  let ancientIssues = [];
+export async function getIssues(
+  client: ReturnType<typeof github.getOctokit>,
+  args: Inputs,
+): Promise<Array<IssueResponse>> {
+  let responseIssues: IssueResponse[] = [];
+  let staleIssues: IssueResponse[] = [];
+  let stalePrs: IssueResponse[] = [];
+  let ancientIssues: IssueResponse[] = [];
 
-  let options = client.issues.listForRepo.endpoint.merge({
+  responseIssues = await client.paginate(client.rest.issues.listForRepo, {
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     state: 'open',
     labels: args.responseRequestedLabel,
     per_page: 100,
   });
-  responseIssues = await client.paginate(options);
   core.debug(`found ${responseIssues.length} response-requested issues`);
 
   if (args.staleIssueMessage && args.staleIssueMessage !== '') {
-    options = client.issues.listForRepo.endpoint.merge({
+    staleIssues = await client.paginate(client.rest.issues.listForRepo, {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       state: 'open',
       labels: args.staleIssueLabel,
       per_page: 100,
     });
-    staleIssues = await client.paginate(options);
     core.debug(`found ${staleIssues.length} stale issues`);
   } else {
     core.debug('skipping stale issues due to empty message');
   }
 
   if (args.stalePrMessage && args.stalePrMessage !== '') {
-    options = client.issues.listForRepo.endpoint.merge({
+    stalePrs = await client.paginate(client.rest.issues.listForRepo, {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       state: 'open',
       labels: args.stalePrLabel,
       per_page: 100,
     });
-    stalePrs = await client.paginate(options);
     core.debug(`found ${stalePrs.length} stale PRs`);
   } else {
     core.debug('skipping stale PRs due to empty message');
@@ -107,7 +117,8 @@ export async function getIssues(client: github.GitHub, args: Inputs): Promise<Ar
     core.debug(
       `using issue ${args.useCreatedDateForAncient ? 'created date' : 'last updated'} to determine for getting ancient issues.`,
     );
-    options = client.issues.listForRepo.endpoint.merge({
+
+    const ancientResults = await client.paginate(client.rest.issues.listForRepo, {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       state: 'open',
@@ -115,7 +126,7 @@ export async function getIssues(client: github.GitHub, args: Inputs): Promise<Ar
       sort: 'updated',
       direction: 'asc',
     });
-    const ancientResults = await client.paginate(options);
+
     ancientIssues = ancientResults.filter(
       (issue) =>
         (args.useCreatedDateForAncient ? new Date(issue.created_at) : new Date(issue.updated_at)) <
@@ -128,29 +139,27 @@ export async function getIssues(client: github.GitHub, args: Inputs): Promise<Ar
 
   const issues = [...responseIssues, ...staleIssues, ...stalePrs, ...ancientIssues];
   return Object.values(
-    issues.reduce((unique, item) => {
+    issues.reduce<Record<string, IssueResponse>>((unique, item) => {
       unique[`${item.id}`] = item;
       return unique;
-    }, []),
+    }, {}),
   );
 }
 
 export async function hasEnoughUpvotes(
-  client: github.GitHub,
+  // client: github.GitHub,
+  client: ReturnType<typeof github.getOctokit>,
   issueNumber: number,
   upvoteCount: number,
 ): Promise<boolean> {
-  const options = client.reactions.listForIssue.endpoint.merge({
+  const reactions = await client.paginate(client.rest.reactions.listForIssue, {
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     issue_number: issueNumber,
-    mediaType: { previews: ['squirrel-girl-preview'] },
+    // The squirrel-girl preview is no longer needed in newer versions
     per_page: 100,
   });
-  let reactions = await client.paginate(options);
-  //for some reason, the client.paginate thing returns an Array containing an Array containing reactions.
-  //we only want the inner Array.
-  reactions = reactions[0];
+
   if (reactions && reactions.length > 0) {
     const upvotes = reactions.reduce((acc: number, cur: { content: string }) => {
       if (cur.content === '+1' || cur.content === 'heart' || cur.content === 'hooray' || cur.content === 'rocket') {

@@ -1,7 +1,7 @@
 import os from 'node:os';
 import * as core from '@actions/core';
 import nock from 'nock';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import * as entrypoint from '../src/entrypoint.ts';
 import * as github from '../src/github.ts';
 import * as mockinputs from './mockinputs.ts';
@@ -9,6 +9,8 @@ import * as gh from '@actions/github';
 
 
 const OLD_ENV = process.env;
+
+type TestOctokit = ReturnType<typeof gh.getOctokit>;
 
 /*
  * API call order (if all messages are set):
@@ -78,6 +80,7 @@ describe('Issue tests', {}, () => {
     await entrypoint.run();
     expect(core.debug).toHaveBeenLastCalledWith('issue contains exempt label');
   });
+
   it('Removes rr and cs labels when an issue is commented on', {}, async () => {
     nock('https://api.github.com')
       .get('/repos/aws-actions/stale-issue-cleanup/issues')
@@ -392,7 +395,8 @@ describe('Configuration tests', {}, () => {
       useCreatedDateForAncient: false
     };
   
-    const client = new gh.GitHub({ auth: args.repoToken });
+    // const client = new gh.GitHub({ auth: args.repoToken });
+    const client = gh.getOctokit(args.repoToken);
   
     nock('https://api.github.com')
       .get('/repos/aws-actions/stale-issue-cleanup/issues')
@@ -435,7 +439,8 @@ describe('Configuration tests', {}, () => {
       useCreatedDateForAncient: false
     };
   
-    const client = new gh.GitHub({ auth: args.repoToken });
+    // const client = new gh.GitHub({ auth: args.repoToken });
+    const client = gh.getOctokit(args.repoToken);
   
     nock('https://api.github.com')
       .get('/repos/aws-actions/stale-issue-cleanup/issues')

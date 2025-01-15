@@ -63,7 +63,8 @@ export function getAndValidateInputs(): Inputs {
   return args;
 }
 
-export async function processIssues(client: github.GitHub, args: Inputs) {
+// export async function processIssues(client: github.GitHub, args: Inputs) {
+export async function processIssues(client: ReturnType<typeof github.getOctokit>, args: Inputs) {
   const uniqueIssues = await getIssues(client, args);
 
   for await (const _ of uniqueIssues.map(async (issue) => {
@@ -144,7 +145,6 @@ export async function processIssues(client: github.GitHub, args: Inputs) {
         }
       }
     } else if (isLabeled(issue, responseRequestedLabel)) {
-      // const lastCommentTime = getLastCommentTime(issueTimelineEvents);
       const commentTime = getLastCommentTime(issueTimelineEvents);
       const lastCommentTime = commentTime ? commentTime.getTime() : 0;
 
@@ -223,8 +223,8 @@ export async function run(): Promise<void> {
   try {
     core.info('Starting issue processing');
     const args = getAndValidateInputs();
-    core.debug(JSON.stringify(args, null, 2));
-    const client = new github.GitHub({ auth: args.repoToken, userAgent: 'GHA Stale Issue' });
+    // core.debug(JSON.stringify(args, null, 2));
+    const client = github.getOctokit(args.repoToken, { userAgent: 'GHA Stale Issue' });
     await processIssues(client, args);
     core.info('Labelled issue processing complete');
     process.exitCode = 0;
