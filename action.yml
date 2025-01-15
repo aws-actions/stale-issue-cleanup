@@ -51,8 +51,8 @@ inputs:
     description: 'Set to true to use issue created date instead of modified date for determining an ancient issue.'
 
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  using: 'node20'
+  main: 'dist/index.js'
   env:
     REPO_TOKEN: ${{ inputs.repo-token }}
     ISSUE_TYPES: ${{ inputs.issue-types }}
