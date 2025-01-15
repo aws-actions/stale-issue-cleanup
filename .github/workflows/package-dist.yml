@@ -45,7 +45,7 @@ jobs:
           echo "::add-mask::${{ env.OSDS_ACCESS_TOKEN }}"
           git config --global user.email "github-aws-sdk-osds-automation@amazon.com"
           git config --global user.name "github-aws-sdk-osds-automation"
-          git remove set-url origin https://${{ env.OSDS_ACCESS_TOKEN }}@github.com/aws-actions/stale-issue-cleanup.git
+          git remote set-url origin https://${{ env.OSDS_ACCESS_TOKEN }}@github.com/aws-actions/stale-issue-cleanup.git
           git add dist
           git add THIRD-PARTY
           git commit -m "chore: update dist and licenses" || echo "No changes to commit"
