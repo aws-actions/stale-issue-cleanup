@@ -47,5 +47,6 @@ jobs:
           git config --global user.name "github-aws-sdk-osds-automation"
           git remove set-url origin https://${{ env.OSDS_ACCESS_TOKEN }}@github.com/aws-actions/stale-issue-cleanup.git
           git add dist
-          git commit -m "chore: update dist" || echo "No changes to commit"
+          git add THIRD-PARTY
+          git commit -m "chore: update dist and licenses" || echo "No changes to commit"
           git push --force origin
