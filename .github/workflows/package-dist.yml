@@ -1,0 +1,51 @@
+---
+name: Update dist files on push to main
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+       - 'dist/**'
+  workflow_dispatch:
+
+jobs:
+  package:
+    name: Package dist files
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+          persist-credentials: false
+      - name: Package
+        run: |
+          npm ci
+          npm run test
+          npm run package
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-west-2
+          role-to-assume: ${{ secrets.SECRETS_AWS_PACKAGING_ROLE_TO_ASSUME }}
+          role-duration-seconds: 900
+          role-session-name: ${{ github.run_id }}
+      - name: Get git credentials
+        uses: aws-actions/aws-secretsmanager-get-secrets@v2
+        with:
+          parse-json-secrets: true
+          secret-ids: |
+            OSDS,arn:aws:secretsmanager:us-west-2:206735643321:secret:github-aws-sdk-osds-automation-gebs9n
+      - name: Commit dist files to main
+        run: |
+          echo "::add-mask::${{ env.OSDS_ACCESS_TOKEN }}"
+          git config --global user.email "github-aws-sdk-osds-automation@amazon.com"
+          git config --global user.name "github-aws-sdk-osds-automation"
+          git remove set-url origin https://${{ env.OSDS_ACCESS_TOKEN }}@github.com/aws-actions/stale-issue-cleanup.git
+          git add dist
+          git commit -m "chore: update dist" || echo "No changes to commit"
+          git push --force origin

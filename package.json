@@ -3,11 +3,17 @@
   "version": "1.0.0",
   "description": "GitHub Action that cleans up old and response-reqested issues",
   "private": true,
-  "main": "entrypoint.js",
+  "main": "dist/entrypoint.js",
   "scripts": {
     "check-lint": "prettier --list-different src/**.js && eslint src/**.js",
-    "lint": "prettier --write src/**.js && eslint --fix src/**.js",
-    "test": "jest --coverage"
+    "lint": "biome check --write src",
+    "test": "npm run lint && vitest run",
+    "build": "tsc",
+    "package": "npm run build && ncc build -m --license THIRD-PARTY -o dist && cp dist/THIRD-PARTY . && del-cli dist/THIRD-PARTY",
+    "coverage": "vitest run --coverage"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "repository": {
     "type": "git",
@@ -19,23 +25,19 @@
   },
   "homepage": "https://github.com/aws-actions/stale-issue-cleanup/#readme",
   "dependencies": {
+    "@actions/core": "^1.11.1",
     "@actions/github": "^2.2.0",
-    "chalk": "^4.1.0",
-    "dateformat": "^4.4.1",
-    "loglevel": "^1.9.1",
-    "loglevel-plugin-prefix": "^0.8.4"
+    "dateformat": "^4.4.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@octokit/types": "^13.7.0",
+    "@types/dateformat": "^5.0.3",
+    "@vercel/ncc": "^0.38.3",
+    "@vitest/coverage-v8": "^2.1.8",
     "dotenv": "^16.0.3",
-    "eslint": "^9.15.0",
-    "eslint-config-google": "^0.14.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-promise": "^6.1.1",
-    "jest": "^29.7.0",
     "nock": "^13.3.0",
-    "prettier": "^2.8.4"
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
   }
 }
