@@ -6,6 +6,7 @@ on:
       - main
     paths-ignore:
        - 'dist/**'
+       - 'THIRD-PARTY'
   workflow_dispatch:
 
 jobs:
