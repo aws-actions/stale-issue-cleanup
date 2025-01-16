@@ -33,6 +33,7 @@
     "@biomejs/biome": "1.9.4",
     "@octokit/types": "^13.7.0",
     "@types/dateformat": "^5.0.3",
+    "@types/node": "^22.10.7",
     "@vercel/ncc": "^0.38.3",
     "@vitest/coverage-v8": "^2.1.8",
     "dotenv": "^16.0.3",
