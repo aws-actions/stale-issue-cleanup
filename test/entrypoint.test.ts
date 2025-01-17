@@ -1,5 +1,7 @@
 import os from 'node:os';
 import * as core from '@actions/core';
+import * as gh from '@actions/github';
+import { GitHub } from '@actions/github/lib/utils';
 import fetchMock from '@fetch-mock/vitest';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as entrypoint from '../src/entrypoint.ts';
