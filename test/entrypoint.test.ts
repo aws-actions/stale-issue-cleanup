@@ -1,5 +1,7 @@
 import os from 'node:os';
 import * as core from '@actions/core';
+import * as gh from '@actions/github';
+import { GitHub } from '@actions/github/lib/utils';
 import fetchMock from '@fetch-mock/vitest';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as entrypoint from '../src/entrypoint.ts';
@@ -346,6 +348,7 @@ describe('Issue tests', {}, () => {
     await entrypoint.run();
     expect(core.debug).toHaveBeenCalledWith('issue is ancient but has enough upvotes to exempt');
   });
+*/
 });
 
 describe('Configuration tests', {}, () => {
@@ -366,7 +369,10 @@ describe('Configuration tests', {}, () => {
   afterEach(() => {
     // Reest env
     process.env = OLD_ENV;
-    fetchMock.mockAbort();
+    fetchMock.removeRoutes();
+  });
+  afterAll(() => {
+    fetchMock.unmockGlobal();
   });
 
   it('Reads and validates action inputs', {}, () => {
@@ -430,22 +436,20 @@ describe('Configuration tests', {}, () => {
       responseRequestedLabel: 'response-requested',
       minimumUpvotesToExempt: 0,
       dryrun: false,
-      useCreatedDateForAncient: false
+      useCreatedDateForAncient: false,
     };
 
-    const client = gh.getOctokit(args.repoToken);
+    const client = gh.getOctokit(args.repoToken, { request: { fetch: fetchMock.fetchHandler } });
 
-    fetchMock.mockResponse(async (req) => {
-      if (req.url === 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100') {
-        return { status: 200, body: JSON.stringify([{
-        number: 1,
-        title: 'Test PR',
-        pull_request: {},
-        updated_at: new Date().toISOString(),
-        labels: []
-      }]) };
-      }
-    });
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        {
+          status: 200,
+          body: [{ number: 1, title: 'Test PR', pull_request: {}, updated_at: new Date().toISOString(), labels: [] }],
+        },
+      );
     await entrypoint.processIssues(client, args);
     expect(core.debug).toHaveBeenCalledWith('Issue is a pull request, which are excluded');
   });
@@ -469,29 +473,20 @@ describe('Configuration tests', {}, () => {
       responseRequestedLabel: 'response-requested',
       minimumUpvotesToExempt: 0,
       dryrun: false,
-      useCreatedDateForAncient: false
+      useCreatedDateForAncient: false,
     };
 
-    const client = gh.getOctokit(args.repoToken);
+    const client = gh.getOctokit(args.repoToken, { request: { fetch: fetchMock.fetchHandler } });
 
-    fetchMock.mockResponse(async (req) => {
-      if (req.url === 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100') {
-        return {
-          status: 200,
-          body: JSON.stringify([
-            {
-              number: 1,
-              title: 'Test PR',
-              updated_at: new Date().toISOString(),
-              labels: [],
-            },
-          ]),
-        };
-      }
-    });
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        { status: 200, body: [{ number: 1, title: 'Test PR', updated_at: new Date().toISOString(), labels: [] }] },
+      );
+
     await entrypoint.processIssues(client, args);
 
     expect(core.debug).toHaveBeenCalledWith('Issue is an issue, which are excluded');
   });
-*/
 });
