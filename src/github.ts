@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
+import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
 import type { Inputs } from './entrypoint';
 import type { issueTimelineEventsType, issueType } from './utils';
 
@@ -64,7 +65,6 @@ export async function getTimelineEvents(
     repo: github.context.repo.repo,
     per_page: 100,
   });
-  return client.paginate(options);
 }
 
 export async function getIssues(client: ReturnType<typeof github.getOctokit>, args: Inputs): Promise<Array<issueType>> {
@@ -149,7 +149,7 @@ export async function hasEnoughUpvotes(
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     issue_number: issueNumber,
-    mediaType: { previews: ['squirrel-girl-preview'] },
+    // The squirrel-girl preview is no longer needed in newer versions
     per_page: 100,
   });
   const upvotes = reactions.reduce((acc, cur) => (cur.content.match(/\+1|heart|hooray|rocket/) ? acc + 1 : acc), 0);
