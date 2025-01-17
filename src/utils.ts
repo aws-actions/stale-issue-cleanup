@@ -1,10 +1,11 @@
 import * as core from '@actions/core';
-import type { Endpoints } from '@octokit/types';
+import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
 import dateformat from 'dateformat';
 
-export type issueType = Endpoints['GET /repos/{owner}/{repo}/issues']['response']['data'][0];
-export type issueTimelineEventsType =
-  Endpoints['GET /repos/{owner}/{repo}/issues/{issue_number}/timeline']['response']['data'][0];
+export type issueType =
+  | RestEndpointMethodTypes['issues']['get']['response']['data']
+  | RestEndpointMethodTypes['pulls']['get']['response']['data'];
+export type issueTimelineEventsType = RestEndpointMethodTypes['issues']['listEventsForTimeline']['response']['data'][0];
 
 export function isLabeled(issue: issueType, label: string) {
   if ('labels' in issue) {
