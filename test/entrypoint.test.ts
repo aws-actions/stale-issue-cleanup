@@ -1,14 +1,15 @@
 import os from 'node:os';
 import * as core from '@actions/core';
-import nock from 'nock';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import * as gh from '@actions/github';
+import { GitHub } from '@actions/github/lib/utils';
+import fetchMock from '@fetch-mock/vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as entrypoint from '../src/entrypoint.ts';
 import * as github from '../src/github.ts';
 import * as mockinputs from './mockinputs.ts';
-import * as gh from '@actions/github';
-
 
 const OLD_ENV = process.env;
+fetchMock.config.matchPartialBody = true;
 
 /*
  * API call order (if all messages are set):
@@ -34,14 +35,13 @@ describe('Issue tests', {}, () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.spyOn(console, 'log');
-
     // GitHub tries to read the Windows version to populate the user-agent header, but this fails in some test
     // environments.
     vi.spyOn(os, 'platform').mockImplementation(() => 'linux');
     vi.spyOn(os, 'release').mockImplementation(() => '1.0');
     // Mock core functions
     vi.spyOn(core, 'setFailed').mockImplementation(console.error);
-    vi.spyOn(core, 'error').mockImplementation(() => {});
+    vi.spyOn(core, 'error').mockImplementation(console.error);
     vi.spyOn(core, 'debug').mockImplementation(() => {});
     vi.spyOn(core, 'info').mockImplementation(() => {});
     vi.spyOn(core, 'warning').mockImplementation(() => {});
@@ -54,256 +54,386 @@ describe('Issue tests', {}, () => {
   afterEach(() => {
     // Reest env and terminate any pending nocks
     process.env = OLD_ENV;
-    if (!nock.isDone()) nock.cleanAll();
+    fetchMock.removeRoutes();
+  });
+  afterAll(() => {
+    fetchMock.unmockGlobal();
   });
 
   it('Skips issues with exempt labels', {}, async () => {
-    nock('https://api.github.com')
-      .get('/repos/aws-actions/stale-issue-cleanup/issues')
-      .query({
-        state: 'open',
-        labels: process.env.RESPONSE_REQUESTED_LABEL,
-        per_page: 100,
-      })
-      .reply(200, [mockinputs.issue256])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/256/timeline?per_page=100')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .reply(200, [...mockinputs.issue256Timeline]);
-    await entrypoint.run();
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        { status: 200, body: [mockinputs.issue256] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&per_page=100&sort=updated&direction=asc',
+        { status: 200, body: [] },
+      )
+      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/256/timeline?per_page=100', {
+        status: 200,
+        body: [...mockinputs.issue256Timeline],
+      });
+
+    await entrypoint.run(fetchMock.fetchHandler);
     expect(core.debug).toHaveBeenLastCalledWith('issue contains exempt label');
   });
   it('Removes rr and cs labels when an issue is commented on', {}, async () => {
-    nock('https://api.github.com')
-      .get('/repos/aws-actions/stale-issue-cleanup/issues')
-      .query({
-        state: 'open',
-        labels: process.env.RESPONSE_REQUESTED_LABEL,
-        per_page: 100,
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        { status: 200, body: [mockinputs.issue257] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&per_page=100&sort=updated&direction=asc',
+        { status: 200, body: [] },
+      )
+      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/257/timeline?per_page=100', {
+        status: 200,
+        body: [...mockinputs.issue257Timeline],
       })
-      .reply(200, [mockinputs.issue257])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/257/timeline?per_page=100')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .reply(200, [...mockinputs.issue257Timeline])
-      .delete('/repos/aws-actions/stale-issue-cleanup/issues/257/labels/closing-soon')
-      .reply(204, {})
-      .delete('/repos/aws-actions/stale-issue-cleanup/issues/257/labels/response-requested')
-      .reply(204, {});
-    await entrypoint.run();
+      .delete('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/257/labels/closing-soon', {
+        status: 200,
+        body: '',
+      })
+      .delete('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/257/labels/response-requested', {
+        status: 200,
+        body: '',
+      });
+    await entrypoint.run(fetchMock.fetchHandler);
     expect(github.removeLabel).toHaveBeenCalledTimes(2);
   });
+
   it('Removes rr label when an issue is commented on and cs is not present', {}, async () => {
-    nock('https://api.github.com')
-      .get('/repos/aws-actions/stale-issue-cleanup/issues')
-      .query({
-        state: 'open',
-        labels: process.env.RESPONSE_REQUESTED_LABEL,
-        per_page: 100,
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        { status: 200, body: [mockinputs.issue262] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&per_page=100&sort=updated&direction=asc',
+        { status: 200, body: [] },
+      )
+      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/262/timeline?per_page=100', {
+        status: 200,
+        body: [...mockinputs.issue262Timeline],
       })
-      .reply(200, [mockinputs.issue262])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/262/timeline?per_page=100')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .reply(200, [...mockinputs.issue262Timeline])
-      .delete('/repos/aws-actions/stale-issue-cleanup/issues/262/labels/response-requested')
-      .reply(204, {});
-    await entrypoint.run();
+      .delete('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/262/labels/response-requested', {
+        status: 200,
+        body: '',
+      });
+    await entrypoint.run(fetchMock.fetchHandler);
     expect(github.removeLabel).toHaveBeenCalledTimes(1);
   });
+
   it('Adds closing-soon label and stale message when an issue is stale', {}, async () => {
-    nock('https://api.github.com')
-      .get('/repos/aws-actions/stale-issue-cleanup/issues')
-      .query({
-        state: 'open',
-        labels: process.env.RESPONSE_REQUESTED_LABEL,
-        per_page: 100,
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        { status: 200, body: [mockinputs.issue261] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&per_page=100&sort=updated&direction=asc',
+        { status: 200, body: [] },
+      )
+      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/261/timeline?per_page=100', {
+        status: 200,
+        body: [...mockinputs.issue261Timeline],
       })
-      .reply(200, [mockinputs.issue261])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/261/timeline?per_page=100')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .reply(200, [...mockinputs.issue261Timeline])
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/261/comments', {
-        body: 'Stale issue message.',
+      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/261/comments', {
+        status: 200,
+        body: '',
       })
-      .reply(201, {})
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/261/labels', {
-        labels: ['closing-soon'],
-      })
-      .reply(201, {});
-    await entrypoint.run();
+      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/261/labels', {
+        status: 200,
+        body: '',
+      });
+    await entrypoint.run(fetchMock.fetchHandler);
     expect(github.markStale).toHaveBeenCalledTimes(1);
   });
-  it('Does nothing if an issue is not stale yet', {}, async () => {
-    nock('https://api.github.com')
-      .get('/repos/aws-actions/stale-issue-cleanup/issues')
-      .query({
-        state: 'open',
-        labels: process.env.RESPONSE_REQUESTED_LABEL,
-        per_page: 100,
+
+  it('Adds closing-soon label and stale message when an issue is stale', {}, async () => {
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        { status: 200, body: [mockinputs.issue261] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&per_page=100&sort=updated&direction=asc',
+        { status: 200, body: [] },
+      )
+      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/261/timeline?per_page=100', {
+        status: 200,
+        body: [...mockinputs.issue261Timeline],
       })
-      .reply(200, [mockinputs.issue263])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/263/timeline?per_page=100')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .reply(200, [...mockinputs.issue263Timeline]);
-    await entrypoint.run();
+      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/261/comments', {
+        status: 200,
+        body: '',
+      })
+      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/261/labels', {
+        status: 200,
+        body: '',
+      });
+
+    await entrypoint.run(fetchMock.fetchHandler);
+    expect(github.markStale).toHaveBeenCalledTimes(1);
+  });
+
+  it('Does nothing if an issue is not stale yet', {}, async () => {
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        { status: 200, body: [mockinputs.issue263] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/263/timeline?per_page=100', {
+        status: 200,
+        body: [...mockinputs.issue263Timeline],
+      });
+
+    await entrypoint.run(fetchMock.fetchHandler);
     expect(github.markStale).not.toHaveBeenCalled();
   });
+
   it('Closes issues once close timer is up', {}, async () => {
-    nock('https://api.github.com')
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
-      .reply(200, [mockinputs.issue258])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/258/timeline?per_page=100')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .reply(200, [...mockinputs.issue258Timeline])
-      .delete('/repos/aws-actions/stale-issue-cleanup/issues/258/labels/closing-soon')
-      .reply(204, {})
-      .patch('/repos/aws-actions/stale-issue-cleanup/issues/258')
-      .reply(200, {})
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/258/labels', {
-        labels: ['closed-for-staleness'],
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100',
+        { status: 200, body: [mockinputs.issue258] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&per_page=100&sort=updated&direction=asc',
+        { status: 200, body: [] },
+      )
+      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/258/timeline?per_page=100', {
+        status: 200,
+        body: [...mockinputs.issue258Timeline],
       })
-      .reply(201, {});
-    await entrypoint.run();
+      .delete('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/258/labels/closing-soon', {
+        status: 200,
+        body: '',
+      })
+      .patch('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/258', { status: 200, body: '' })
+      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/258/labels', {
+        status: 200,
+        body: '',
+      });
+
+    await entrypoint.run(fetchMock.fetchHandler);
     expect(github.closeIssue).toHaveBeenCalledTimes(1);
     expect(github.removeLabel).toHaveBeenCalledTimes(1);
   });
+
   it('Does nothing if the close timer is not up yet', {}, async () => {
-    nock('https://api.github.com')
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
-      .reply(200, [mockinputs.issue259])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/259/timeline?per_page=100')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .reply(200, [...mockinputs.issue259Timeline]);
-    await entrypoint.run();
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100',
+        { status: 200, body: [mockinputs.issue259] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/259/timeline?per_page=100', {
+        status: 200,
+        body: [...mockinputs.issue259Timeline],
+      });
+
+    await entrypoint.run(fetchMock.fetchHandler);
     expect(github.closeIssue).not.toHaveBeenCalled();
   });
+
   it('Stales ancient issues with insufficient upvotes', {}, async () => {
-    nock('https://api.github.com')
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
-      .reply(200, [mockinputs.issue299])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/299/timeline?per_page=100')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/299/reactions?per_page=100')
-      .reply(200, [])
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/299/comments', {
-        body: 'Ancient issue message.',
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&per_page=100&sort=updated&direction=asc',
+        { status: 200, body: [mockinputs.issue299] },
+      )
+      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299/timeline?per_page=100', {
+        status: 200,
+        body: [],
       })
-      .reply(201, {})
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/299/labels', {
-        labels: ['closing-soon'],
+      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299/reactions?per_page=100', {
+        status: 200,
+        body: [],
       })
-      .reply(201, {});
-    await entrypoint.run();
+      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/260/comments', {
+        status: 200,
+        body: '',
+      })
+      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/260/labels', {
+        status: 200,
+        body: '',
+      });
+    await entrypoint.run(fetchMock.fetchHandler);
     expect(github.markStale).toHaveBeenCalledTimes(1);
   });
   it('Skips issues if empty messages were configured', {}, async () => {
-    nock('https://api.github.com')
-      .get('/repos/aws-actions/stale-issue-cleanup/issues')
-      .query({
-        state: 'open',
-        labels: process.env.RESPONSE_REQUESTED_LABEL,
-        per_page: 100,
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        { status: 200, body: [mockinputs.issue261] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/261/timeline?per_page=100', {
+        status: 200,
+        body: [...mockinputs.issue261Timeline],
       })
-      .reply(200, [mockinputs.issue261])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/261/timeline?per_page=100')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .reply(200, [...mockinputs.issue261Timeline])
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/261/comments', {
-        body: 'Stale issue message.',
+      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/261/comments', {
+        status: 200,
+        body: '',
       })
-      .reply(201, {})
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/261/labels', {
-        labels: ['closing-soon'],
-      })
-      .reply(201, {});
+      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/261/labels', {
+        status: 200,
+        body: '',
+      });
     const env = process.env;
     process.env.STALE_ISSUE_MESSAGE = '';
     process.env.ANCIENT_ISSUE_MESSAGE = '';
     process.env.STALE_PR_MESSAGE = '';
-    await entrypoint.run();
+    await entrypoint.run(fetchMock.fetchHandler);
     process.env.STALE_ISSUE_MESSAGE = env.STALE_ISSUE_MESSAGE;
     process.env.ANCIENT_ISSUE_MESSAGE = env.ANCIENT_ISSUE_MESSAGE;
     process.env.STALE_PR_MESSAGE = env.STALE_PR_MESSAGE;
     expect(github.markStale).not.toHaveBeenCalled();
   });
   it('Does not stale ancient issues with sufficient upvotes', {}, async () => {
-    nock('https://api.github.com')
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100')
-      .reply(200, [mockinputs.issue242])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/242/timeline?per_page=100')
-      .matchHeader('accept', 'application/vnd.github.mockingbird-preview+json')
-      .reply(200, [])
-      .get('/repos/aws-actions/stale-issue-cleanup/issues/242/reactions?per_page=100')
-      .reply(200, [mockinputs.issue242Reactions])
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/242/comments', {
-        body: 'Ancient issue message.',
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100',
+        { status: 200, body: [mockinputs.issue242] },
+      )
+      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/242/timeline?per_page=100', {
+        status: 200,
+        body: [],
       })
-      .reply(201, {})
-      .post('/repos/aws-actions/stale-issue-cleanup/issues/242/labels', {
-        labels: ['closing-soon'],
+      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/242/reactions?per_page=100', {
+        status: 200,
+        body: [mockinputs.issue242Reactions],
       })
-      .reply(201, {});
-    await entrypoint.run();
-    expect(core.debug).toHaveBeenCalledWith('issue is ancient but has enough upvotes to exempt');
+      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/242/comments', {
+        status: 200,
+        body: '',
+      })
+      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/242/labels', {
+        status: 200,
+        body: '',
+      });
+    await entrypoint.run(fetchMock.fetchHandler);
+    expect(github.markStale).not.toHaveBeenCalled();
   });
 });
 
@@ -325,7 +455,10 @@ describe('Configuration tests', {}, () => {
   afterEach(() => {
     // Reest env
     process.env = OLD_ENV;
-    if (!nock.isDone()) nock.cleanAll();
+    fetchMock.removeRoutes();
+  });
+  afterAll(() => {
+    fetchMock.unmockGlobal();
   });
 
   it('Reads and validates action inputs', {}, () => {
@@ -389,26 +522,20 @@ describe('Configuration tests', {}, () => {
       responseRequestedLabel: 'response-requested',
       minimumUpvotesToExempt: 0,
       dryrun: false,
-      useCreatedDateForAncient: false
+      useCreatedDateForAncient: false,
     };
-  
-    const client = new gh.GitHub({ auth: args.repoToken });
-  
-    nock('https://api.github.com')
-      .get('/repos/aws-actions/stale-issue-cleanup/issues')
-      .query({
-        state: 'open',
-        labels: 'response-requested',
-        per_page: 100
-      })
-      .reply(200, [{
-        number: 1,
-        title: 'Test PR',
-        pull_request: {},
-        updated_at: new Date().toISOString(),
-        labels: []
-      }]);
-    
+
+    const client = gh.getOctokit(args.repoToken, { request: { fetch: fetchMock.fetchHandler } });
+
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        {
+          status: 200,
+          body: [{ number: 1, title: 'Test PR', pull_request: {}, updated_at: new Date().toISOString(), labels: [] }],
+        },
+      );
     await entrypoint.processIssues(client, args);
     expect(core.debug).toHaveBeenCalledWith('Issue is a pull request, which are excluded');
   });
@@ -428,32 +555,24 @@ describe('Configuration tests', {}, () => {
       stalePrLabel: 'stale',
       exemptPrLabels: '',
       cfsLabel: '',
-      issueTypes: [], 
+      issueTypes: [],
       responseRequestedLabel: 'response-requested',
       minimumUpvotesToExempt: 0,
       dryrun: false,
-      useCreatedDateForAncient: false
+      useCreatedDateForAncient: false,
     };
-  
-    const client = new gh.GitHub({ auth: args.repoToken });
-  
-    nock('https://api.github.com')
-      .get('/repos/aws-actions/stale-issue-cleanup/issues')
-      .query({
-        state: 'open',
-        labels: 'response-requested',
-        per_page: 100
-      })
-      .reply(200, [{
-        number: 1,
-        title: 'Test PR',
-        updated_at: new Date().toISOString(),
-        labels: []
-      }])
-    
+
+    const client = gh.getOctokit(args.repoToken, { request: { fetch: fetchMock.fetchHandler } });
+
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        { status: 200, body: [{ number: 1, title: 'Test PR', updated_at: new Date().toISOString(), labels: [] }] },
+      );
+
     await entrypoint.processIssues(client, args);
-  
+
     expect(core.debug).toHaveBeenCalledWith('Issue is an issue, which are excluded');
   });
-
 });

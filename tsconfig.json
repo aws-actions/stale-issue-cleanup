@@ -18,5 +18,5 @@
     "experimentalDecorators": true,
     "strictPropertyInitialization": true
   },
-  "exclude": ["node_modules", "dist", "test", "vitest.config.mts"]
+  "exclude": ["node_modules", "dist", "test", "vitest.config.ts"]
 }

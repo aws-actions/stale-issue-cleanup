@@ -63,7 +63,7 @@ export function getAndValidateInputs(): Inputs {
   return args;
 }
 
-export async function processIssues(client: github.GitHub, args: Inputs) {
+export async function processIssues(client: ReturnType<typeof github.getOctokit>, args: Inputs) {
   const uniqueIssues = await getIssues(client, args);
 
   for await (const _ of uniqueIssues.map(async (issue) => {
@@ -219,12 +219,12 @@ export async function processIssues(client: github.GitHub, args: Inputs) {
   }));
 }
 
-export async function run(): Promise<void> {
+export async function run(fetchImpl?: typeof globalThis.fetch): Promise<void> {
   try {
     core.info('Starting issue processing');
     const args = getAndValidateInputs();
     core.debug(JSON.stringify(args, null, 2));
-    const client = new github.GitHub({ auth: args.repoToken, userAgent: 'GHA Stale Issue' });
+    const client = github.getOctokit(args.repoToken, { request: { fetch: fetchImpl || globalThis.fetch } });
     await processIssues(client, args);
     core.info('Labelled issue processing complete');
     process.exitCode = 0;
