@@ -1,6 +1,5 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
 import type { Inputs } from './entrypoint';
 import type { issueTimelineEventsType, issueType } from './utils';
 
@@ -59,7 +58,7 @@ export async function getTimelineEvents(
   client: ReturnType<typeof github.getOctokit>,
   issue: issueType,
 ): Promise<issueTimelineEventsType[]> {
-  const options = client.rest.issues.listEventsForTimeline.endpoint.merge({
+  return client.paginate(client.rest.issues.listEventsForTimeline, {
     issue_number: issue.number,
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
