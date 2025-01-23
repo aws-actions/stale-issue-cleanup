@@ -323,7 +323,7 @@ export const actionInputs = {
   STALE_PR_LABEL: 'stale-pr',
   EXEMPT_PR_LABELS: 'go-away-bot',
   RESPONSE_REQUESTED_LABEL: 'response-requested',
-  CFS_LABEL: 'closed-for-staleness',
+  CLOSED_FOR_STALENESS_LABEL: 'closed-for-staleness',
   MINIMUM_UPVOTES_TO_EXEMPT: '1',
   ISSUE_TYPES: 'issues,pull_requests',
 };

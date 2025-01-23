@@ -33,6 +33,35 @@ export type Inputs = {
 };
 
 export function getAndValidateInputs(): Inputs {
+  // Previous versions of this action were Docker-based an used a runs.evn
+  // key to pass inputs. This is not supported in JS actions. This workaround
+  // reexports the inputs from the environment variables.
+  for (const env of [
+    'INPUT_REPO_TOKEN',
+    'INPUT_ISSUE_TYPES',
+    'INPUT_ANCIENT_ISSUE_MESSAGE',
+    'INPUT_ANCIENT_PR_MESSAGE',
+    'INPUT_STALE_ISSUE_MESSAGE',
+    'INPUT_STALE_PR_MESSAGE',
+    'INPUT_DAYS_BEFORE_STALE',
+    'INPUT_DAYS_BEFORE_CLOSE',
+    'INPUT_DAYS_BEFORE_ANCIENT',
+    'INPUT_STALE_ISSUE_LABEL',
+    'INPUT_EXEMPT_ISSUE_LABELS',
+    'INPUT_STALE_PR_LABEL',
+    'INPUT_EXEMPT_PR_LABELS',
+    'INPUT_CLOSED_FOR_STALENESS_LABEL',
+    'INPUT_RESPONSE_REQUESTED_LABEL',
+    'INPUT_MINIMUM_UPVOTES_TO_EXEMPT',
+    'INPUT_DRYRUN',
+    'INPUT_LOGLEVEL',
+    'INPUT_USE_CREATED_DATE_FOR_ANCIENT',
+  ]) {
+    if (process.env[env]) {
+      core.exportVariable(env.split('INPUT_')[1], process.env[env]);
+    }
+  }
+  // End workaround
   const args = {
     repoToken: process.env.REPO_TOKEN ?? '',
     ancientIssueMessage: process.env.ANCIENT_ISSUE_MESSAGE ?? '',
@@ -46,7 +75,7 @@ export function getAndValidateInputs(): Inputs {
     exemptIssueLabels: process.env.EXEMPT_ISSUE_LABELS ?? '',
     stalePrLabel: process.env.STALE_PR_LABEL ?? '',
     exemptPrLabels: process.env.EXEMPT_PR_LABELS ?? '',
-    cfsLabel: process.env.CFS_LABEL ?? '',
+    cfsLabel: process.env.CLOSED_FOR_STALENESS_LABEL ?? '',
     issueTypes: (process.env.ISSUE_TYPES ?? '').split(','),
     responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL ?? '',
     minimumUpvotesToExempt: Number.parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT ?? '0'),

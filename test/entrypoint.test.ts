@@ -240,8 +240,8 @@ describe('Issue tests', {}, () => {
         { status: 200, body: [] },
       )
       .get(
-        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100',
-        { status: 200, body: [] },
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues',
+        { status: 200, body: [] }, { query: { state: 'open', sort: 'updated', direction: 'asc', per_page: '100' } }
       )
       .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/263/timeline?per_page=100', {
         status: 200,
@@ -306,8 +306,8 @@ describe('Issue tests', {}, () => {
         { status: 200, body: [] },
       )
       .get(
-        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100',
-        { status: 200, body: [] },
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues',
+        { status: 200, body: [] }, { query: { state: 'open', sort: 'updated', direction: 'asc', per_page: '100' } }
       )
       .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/259/timeline?per_page=100', {
         status: 200,
@@ -337,19 +337,18 @@ describe('Issue tests', {}, () => {
         'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&per_page=100&sort=updated&direction=asc',
         { status: 200, body: [mockinputs.issue299] },
       )
-      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299/timeline?per_page=100', {
-        status: 200,
-        body: [],
-      })
+      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299/timeline?per_page=100',
+       { status: 200, body: [] },
+      )
       .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299/reactions?per_page=100', {
         status: 200,
         body: [],
       })
-      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/260/comments', {
+      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299/comments', {
         status: 200,
         body: '',
       })
-      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/260/labels', {
+      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299/labels', {
         status: 200,
         body: '',
       });
@@ -413,8 +412,8 @@ describe('Issue tests', {}, () => {
         { status: 200, body: [] },
       )
       .get(
-        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100',
-        { status: 200, body: [mockinputs.issue242] },
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues',
+        { status: 200, body: [mockinputs.issue242] }, { query: { state: 'open', sort: 'updated', direction: 'asc', per_page: '100' } }
       )
       .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/242/timeline?per_page=100', {
         status: 200,
@@ -422,7 +421,7 @@ describe('Issue tests', {}, () => {
       })
       .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/242/reactions?per_page=100', {
         status: 200,
-        body: [mockinputs.issue242Reactions],
+        body: mockinputs.issue242Reactions,
       })
       .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/242/comments', {
         status: 200,
@@ -479,7 +478,7 @@ describe('Configuration tests', {}, () => {
       exemptPrLabels: process.env.EXEMPT_PR_LABELS,
       responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
       minimumUpvotesToExempt: Number.parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT ?? '0'),
-      cfsLabel: process.env.CFS_LABEL,
+      cfsLabel: process.env.CLOSED_FOR_STALENESS_LABEL,
       issueTypes: process.env.ISSUE_TYPES?.split(','),
       useCreatedDateForAncient: !!process.env.USE_CREATED_DATE_FOR_ANCIENT,
     });
@@ -575,4 +574,5 @@ describe('Configuration tests', {}, () => {
 
     expect(core.debug).toHaveBeenCalledWith('Issue is an issue, which are excluded');
   });
+
 });

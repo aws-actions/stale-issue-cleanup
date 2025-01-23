@@ -151,6 +151,12 @@ export async function hasEnoughUpvotes(
     // The squirrel-girl preview is no longer needed in newer versions
     per_page: 100,
   });
-  const upvotes = reactions.reduce((acc, cur) => (cur.content.match(/\+1|heart|hooray|rocket/) ? acc + 1 : acc), 0);
+  const upvotes = reactions.filter(
+    (reaction) =>
+      reaction.content === '+1' ||
+      reaction.content === 'heart' ||
+      reaction.content === 'hooray' ||
+      reaction.content === 'rocket',
+  ).length;
   return upvotes >= upvoteCount;
 }
