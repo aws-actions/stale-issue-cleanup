@@ -1,6 +1,6 @@
 {
   "name": "stale-issue-cleanup",
-  "version": "1.0.0",
+  "version": "6.0.0",
   "description": "GitHub Action that cleans up old and response-reqested issues",
   "private": true,
   "main": "dist/entrypoint.js",
