@@ -3,9 +3,10 @@ name: Release Please
 on:
   push:
     branches:
-      - origin/release-please-integration
+      - main
 
 permissions:
+  id-token: write
   contents: write
   pull-requests: write
 
@@ -13,6 +14,11 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -20,6 +26,7 @@ jobs:
           role-to-assume: ${{ secrets.SECRETS_AWS_PACKAGING_ROLE_TO_ASSUME }}
           role-duration-seconds: 900
           role-session-name: ${{ github.run_id }}
+
       - name: Get git credentials
         uses: aws-actions/aws-secretsmanager-get-secrets@v2
         with:
@@ -27,7 +34,10 @@ jobs:
           secret-ids: |
             OSDS,arn:aws:secretsmanager:us-west-2:206735643321:secret:github-aws-sdk-osds-automation-gebs9n
 
-      - uses: google-github-actions/release-please-action@v4
+      - name: Run release-please
+        uses: googleapis/release-please-action@v4
         with:
           release-type: node
-          token: ${{ steps.git-secrets.outputs.OSDS_ACCESS_TOKEN }}
+          token: ${{ env.OSDS_ACCESS_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
