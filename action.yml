@@ -53,23 +53,3 @@ inputs:
 runs:
   using: 'node20'
   main: 'dist/index.js'
-  env:
-    REPO_TOKEN: ${{ inputs.repo-token }}
-    ISSUE_TYPES: ${{ inputs.issue-types }}
-    ANCIENT_ISSUE_MESSAGE: ${{ inputs.ancient-issue-message }}
-    ANCIENT_PR_MESSAGE: ${{ inputs.ancient-pr-message }}
-    STALE_ISSUE_MESSAGE: ${{ inputs.stale-issue-message }}
-    STALE_PR_MESSAGE: ${{ inputs.stale-pr-message }}
-    DAYS_BEFORE_STALE: ${{ inputs.days-before-stale }}
-    DAYS_BEFORE_CLOSE: ${{ inputs.days-before-close }}
-    DAYS_BEFORE_ANCIENT: ${{ inputs.days-before-ancient }}
-    STALE_ISSUE_LABEL: ${{ inputs.stale-issue-label }}
-    EXEMPT_ISSUE_LABELS: ${{ inputs.exempt-issue-labels }}
-    STALE_PR_LABEL: ${{ inputs.stale-pr-label }}
-    EXEMPT_PR_LABELS: ${{ inputs.exempt-pr-labels }}
-    RESPONSE_REQUESTED_LABEL: ${{ inputs.response-requested-label }}
-    CFS_LABEL: ${{ inputs.closed-for-staleness-label }}
-    MINIMUM_UPVOTES_TO_EXEMPT: ${{ inputs.minimum-upvotes-to-exempt }}
-    LOGLEVEL: ${{ inputs.loglevel }}
-    DRYRUN: ${{ inputs.dry-run }}
-    USE_CREATED_DATE_FOR_ANCIENT: ${{ inputs.use-created-date-for-ancient }}
