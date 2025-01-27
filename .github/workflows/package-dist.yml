@@ -51,3 +51,4 @@ jobs:
           git add THIRD-PARTY
           git commit -m "chore: update dist and licenses" || echo "No changes to commit"
           git push --force origin
+
