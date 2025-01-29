@@ -34,12 +34,10 @@ export type Inputs = {
   useCreatedDateForAncient: boolean;
 };
 
-const getRequiredInput = (name: string): string => {
-  return core.getInput(name, { required: true });
-};
-const getNumberInput = (name: string): number => {
-  return Number.parseFloat(core.getInput(name)) ?? 0;
-};
+const getRequiredInput = (name: string): string => core.getInput(name, { required: true });
+const getNumberInput = (name: string): number => Number.parseFloat(core.getInput(name));
+const getOptionalBooleanInput = (name: string): boolean =>
+  core.getInput(name, { required: false }).toLowerCase() === 'true';
 
 export function getAndValidateInputs(): Inputs {
   const args = {
@@ -59,9 +57,9 @@ export function getAndValidateInputs(): Inputs {
     issueTypes: getInput('issue-types').split(','),
     responseRequestedLabel: getInput('response-requested-label'),
     minimumUpvotesToExempt: getNumberInput('minimum-upvotes-to-exempt'),
-    dryrun: getBooleanInput('dry-run'),
-    useCreatedDateForAncient: getBooleanInput('use-created-date-for-ancient'),
-  } satisfies Inputs;
+    dryrun: getOptionalBooleanInput('dry-run'),
+    useCreatedDateForAncient: getOptionalBooleanInput('use-created-date-for-ancient'),
+  };
 
   for (const numberInput of [args.daysBeforeAncient, args.daysBeforeClose, args.daysBeforeStale]) {
     if (Number.isNaN(numberInput)) {
