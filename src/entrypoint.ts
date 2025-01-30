@@ -1,6 +1,6 @@
 // Test comment in entrypoint.ts
 import * as core from '@actions/core';
-import { getBooleanInput, getInput } from '@actions/core';
+import { getInput } from '@actions/core';
 import * as github from '@actions/github';
 import { closeIssue, getIssues, getTimelineEvents, hasEnoughUpvotes, markStale, removeLabel } from './github';
 import {
