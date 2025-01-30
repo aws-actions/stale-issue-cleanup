@@ -1,5 +1,6 @@
 // Test comment in entrypoint.ts
 import * as core from '@actions/core';
+import { getInput } from '@actions/core';
 import * as github from '@actions/github';
 import { closeIssue, getIssues, getTimelineEvents, hasEnoughUpvotes, markStale, removeLabel } from './github';
 import {
@@ -33,56 +34,32 @@ export type Inputs = {
   useCreatedDateForAncient: boolean;
 };
 
+const getRequiredInput = (name: string): string => core.getInput(name, { required: true });
+const getNumberInput = (name: string): number => Number.parseFloat(core.getInput(name));
+const getOptionalBooleanInput = (name: string): boolean =>
+  core.getInput(name, { required: false }).toLowerCase() === 'true';
+
 export function getAndValidateInputs(): Inputs {
-  // Previous versions of this action were Docker-based an used a runs.evn
-  // key to pass inputs. This is not supported in JS actions. This workaround
-  // reexports the inputs from the environment variables.
-  for (const env of [
-    'INPUT_REPO_TOKEN',
-    'INPUT_ISSUE_TYPES',
-    'INPUT_ANCIENT_ISSUE_MESSAGE',
-    'INPUT_ANCIENT_PR_MESSAGE',
-    'INPUT_STALE_ISSUE_MESSAGE',
-    'INPUT_STALE_PR_MESSAGE',
-    'INPUT_DAYS_BEFORE_STALE',
-    'INPUT_DAYS_BEFORE_CLOSE',
-    'INPUT_DAYS_BEFORE_ANCIENT',
-    'INPUT_STALE_ISSUE_LABEL',
-    'INPUT_EXEMPT_ISSUE_LABELS',
-    'INPUT_STALE_PR_LABEL',
-    'INPUT_EXEMPT_PR_LABELS',
-    'INPUT_CLOSED_FOR_STALENESS_LABEL',
-    'INPUT_RESPONSE_REQUESTED_LABEL',
-    'INPUT_MINIMUM_UPVOTES_TO_EXEMPT',
-    'INPUT_DRYRUN',
-    'INPUT_LOGLEVEL',
-    'INPUT_USE_CREATED_DATE_FOR_ANCIENT',
-  ]) {
-    if (process.env[env]) {
-      core.exportVariable(env.split('INPUT_')[1], process.env[env]);
-    }
-  }
-  // End workaround
   const args = {
-    repoToken: process.env.REPO_TOKEN ?? '',
-    ancientIssueMessage: process.env.ANCIENT_ISSUE_MESSAGE ?? '',
-    ancientPrMessage: process.env.ANCIENT_PR_MESSAGE ?? '',
-    staleIssueMessage: process.env.STALE_ISSUE_MESSAGE ?? '',
-    stalePrMessage: process.env.STALE_PR_MESSAGE ?? '',
-    daysBeforeStale: Number.parseFloat(process.env.DAYS_BEFORE_STALE ?? '0'),
-    daysBeforeClose: Number.parseFloat(process.env.DAYS_BEFORE_CLOSE ?? '0'),
-    daysBeforeAncient: Number.parseFloat(process.env.DAYS_BEFORE_ANCIENT ?? '0'),
-    staleIssueLabel: process.env.STALE_ISSUE_LABEL ?? '',
-    exemptIssueLabels: process.env.EXEMPT_ISSUE_LABELS ?? '',
-    stalePrLabel: process.env.STALE_PR_LABEL ?? '',
-    exemptPrLabels: process.env.EXEMPT_PR_LABELS ?? '',
-    cfsLabel: process.env.CLOSED_FOR_STALENESS_LABEL ?? '',
-    issueTypes: (process.env.ISSUE_TYPES ?? '').split(','),
-    responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL ?? '',
-    minimumUpvotesToExempt: Number.parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT ?? '0'),
-    dryrun: String(process.env.DRYRUN).toLowerCase() === 'true',
-    useCreatedDateForAncient: String(process.env.USE_CREATED_DATE_FOR_ANCIENT).toLowerCase() === 'true',
-  } satisfies Inputs;
+    repoToken: getRequiredInput('repo-token'),
+    ancientIssueMessage: getInput('ancient-issue-message'),
+    ancientPrMessage: getInput('ancient-pr-message'),
+    staleIssueMessage: getInput('stale-issue-message'),
+    stalePrMessage: getInput('stale-pr-message'),
+    daysBeforeStale: getNumberInput('days-before-stale'),
+    daysBeforeClose: getNumberInput('days-before-close'),
+    daysBeforeAncient: getNumberInput('days-before-ancient'),
+    staleIssueLabel: getInput('stale-issue-label'),
+    exemptIssueLabels: getInput('exempt-issue-labels'),
+    stalePrLabel: getInput('stale-pr-label'),
+    exemptPrLabels: getInput('exempt-pr-labels'),
+    cfsLabel: getInput('closed-for-staleness-label'),
+    issueTypes: getInput('issue-types').split(','),
+    responseRequestedLabel: getInput('response-requested-label'),
+    minimumUpvotesToExempt: getNumberInput('minimum-upvotes-to-exempt'),
+    dryrun: getOptionalBooleanInput('dry-run'),
+    useCreatedDateForAncient: getOptionalBooleanInput('use-created-date-for-ancient'),
+  };
 
   for (const numberInput of [args.daysBeforeAncient, args.daysBeforeClose, args.daysBeforeStale]) {
     if (Number.isNaN(numberInput)) {

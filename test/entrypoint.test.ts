@@ -463,40 +463,40 @@ describe('Configuration tests', {}, () => {
   it('Reads and validates action inputs', {}, () => {
     const inputs = entrypoint.getAndValidateInputs();
     expect(inputs).toEqual({
-      repoToken: process.env.REPO_TOKEN,
-      ancientIssueMessage: process.env.ANCIENT_ISSUE_MESSAGE,
-      ancientPrMessage: process.env.ANCIENT_PR_MESSAGE,
-      dryrun: !!process.env.DRYRUN,
-      staleIssueMessage: process.env.STALE_ISSUE_MESSAGE,
-      stalePrMessage: process.env.STALE_PR_MESSAGE,
-      daysBeforeStale: Number.parseFloat(process.env.DAYS_BEFORE_STALE ?? '0'),
-      daysBeforeClose: Number.parseFloat(process.env.DAYS_BEFORE_CLOSE ?? '0'),
-      daysBeforeAncient: Number.parseFloat(process.env.DAYS_BEFORE_ANCIENT ?? '0'),
-      staleIssueLabel: process.env.STALE_ISSUE_LABEL,
-      exemptIssueLabels: process.env.EXEMPT_ISSUE_LABELS,
-      stalePrLabel: process.env.STALE_PR_LABEL,
-      exemptPrLabels: process.env.EXEMPT_PR_LABELS,
-      responseRequestedLabel: process.env.RESPONSE_REQUESTED_LABEL,
-      minimumUpvotesToExempt: Number.parseInt(process.env.MINIMUM_UPVOTES_TO_EXEMPT ?? '0'),
-      cfsLabel: process.env.CLOSED_FOR_STALENESS_LABEL,
-      issueTypes: process.env.ISSUE_TYPES?.split(','),
-      useCreatedDateForAncient: !!process.env.USE_CREATED_DATE_FOR_ANCIENT,
+      repoToken: process.env['INPUT_REPO-TOKEN'],
+      ancientIssueMessage: process.env['INPUT_ANCIENT-ISSUE-MESSAGE'],
+      ancientPrMessage: process.env['INPUT_ANCIENT-PR-MESSAGE'],
+      dryrun: !!process.env['INPUT_DRY-RUN'],
+      staleIssueMessage: process.env['INPUT_STALE-ISSUE-MESSAGE'],
+      stalePrMessage: process.env['INPUT_STALE-PR-MESSAGE'],
+      daysBeforeStale: Number.parseFloat(process.env['INPUT_DAYS-BEFORE-STALE'] ?? '0'),
+      daysBeforeClose: Number.parseFloat(process.env['INPUT_DAYS-BEFORE-CLOSE'] ?? '0'),
+      daysBeforeAncient: Number.parseFloat(process.env['INPUT_DAYS-BEFORE-ANCIENT'] ?? '0'),
+      staleIssueLabel: process.env['INPUT_STALE-ISSUE-LABEL'],
+      exemptIssueLabels: process.env['INPUT_EXEMPT-ISSUE-LABELS'],
+      stalePrLabel: process.env['INPUT_STALE-PR-LABEL'],
+      exemptPrLabels: process.env['INPUT_EXEMPT-PR-LABELS'],
+      responseRequestedLabel: process.env['INPUT_RESPONSE-REQUESTED-LABEL'],
+      minimumUpvotesToExempt: Number.parseInt(process.env['INPUT_MINIMUM-UPVOTES-TO-EXEMPT'] ?? '0'),
+      cfsLabel: process.env['INPUT_CLOSED-FOR-STALENESS-LABEL'],
+      issueTypes: process.env['INPUT_ISSUE-TYPES']?.split(','),
+      useCreatedDateForAncient: !!process.env['INPUT_USE-CREATED-DATE-FOR-ANCIENT'],
     });
   });
 
   it('Handles bad inputs', {}, () => {
     const env = process.env;
-    process.env.DAYS_BEFORE_ANCIENT = 'asdf';
+    process.env['INPUT_DAYS-BEFORE-ANCIENT'] = 'asdf';
     expect(() => {
       entrypoint.getAndValidateInputs();
     }).toThrow();
-    process.env.DAYS_BEFORE_ANCIENT = env.DAYS_EFORE_ANCIENT;
-    process.env.DAYS_BEFORE_STALE = 'asdf';
+    process.env['INPUT_DAYS-BEFORE-ANCIENT'] = env['INPUT_DAYS-BEFORE-ANCIENT'];
+    process.env['INPUT_DAYS-BEFORE-STALE'] = 'asdf';
     expect(() => {
       entrypoint.getAndValidateInputs();
     }).toThrow();
-    process.env.DAYS_BEFORE_STALE = env.DAYS_BEFORE_STALE;
-    process.env.DAYS_BEFORE_CLOSE = 'asdf';
+    process.env['INPUT_DAYS-BEFORE-STALE'] = env['INPUT_DAYS-BEFORE-STALE'];
+    process.env['INPUT_DAYS-BEFORE-CLOSE'] = 'asdf';
     expect(() => {
       entrypoint.getAndValidateInputs();
     }).toThrow();
