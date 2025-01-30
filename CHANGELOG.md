@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.0.1](https://github.com/aws-actions/stale-issue-cleanup/compare/v7.0.0...v7.0.1) (2025-01-30)
+
+
+### Miscellaneous Chores
+
+* release 7.0.1 ([8bab335](https://github.com/aws-actions/stale-issue-cleanup/commit/8bab335c05098cfc2057d6ec3135a9942311a22e))
+
 ## 7.0.0 (2025-01-27)
 
 
