@@ -7,7 +7,7 @@
   "scripts": {
     "check-lint": "prettier --list-different src/**.js && eslint src/**.js",
     "lint": "biome check --write src",
-    "test": "npm run lint && vitest run",
+    "test": "hostname && npm run lint && vitest run",
     "build": "tsc",
     "package": "npm run build && ncc build -m --license THIRD-PARTY -o dist && node -e \"require('fs').cpSync('dist/THIRD-PARTY', './THIRD-PARTY')\"",
     "coverage": "vitest run --coverage"
