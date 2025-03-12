@@ -1,5 +1,17 @@
 # Changelog
 
+## [7.1.0](https://github.com/aws-actions/stale-issue-cleanup/compare/v7.0.1...v7.1.0) (2025-03-12)
+
+
+### Features
+
+* Add dependabot auto-approve action ([f56e1ea](https://github.com/aws-actions/stale-issue-cleanup/commit/f56e1ea9446b5eea631595b5cbf5038e4bd4b8b2))
+
+
+### Bug Fixes
+
+* check failing test ([c676b23](https://github.com/aws-actions/stale-issue-cleanup/commit/c676b237a08abebcc4a33b754bcde6e010087140))
+
 ## [7.0.1](https://github.com/aws-actions/stale-issue-cleanup/compare/v7.0.0...v7.0.1) (2025-01-30)
 
 
