@@ -1,7 +1,6 @@
 import os from 'node:os';
 import * as core from '@actions/core';
 import * as gh from '@actions/github';
-import { GitHub } from '@actions/github/lib/utils';
 import fetchMock from '@fetch-mock/vitest';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as entrypoint from '../src/entrypoint.ts';
@@ -241,7 +240,8 @@ describe('Issue tests', {}, () => {
       )
       .get(
         'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues',
-        { status: 200, body: [] }, { query: { state: 'open', sort: 'updated', direction: 'asc', per_page: '100' } }
+        { status: 200, body: [] },
+        { query: { state: 'open', sort: 'updated', direction: 'asc', per_page: '100' } },
       )
       .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/263/timeline?per_page=100', {
         status: 200,
@@ -307,7 +307,8 @@ describe('Issue tests', {}, () => {
       )
       .get(
         'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues',
-        { status: 200, body: [] }, { query: { state: 'open', sort: 'updated', direction: 'asc', per_page: '100' } }
+        { status: 200, body: [] },
+        { query: { state: 'open', sort: 'updated', direction: 'asc', per_page: '100' } },
       )
       .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/259/timeline?per_page=100', {
         status: 200,
@@ -337,9 +338,10 @@ describe('Issue tests', {}, () => {
         'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&per_page=100&sort=updated&direction=asc',
         { status: 200, body: [mockinputs.issue299] },
       )
-      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299/timeline?per_page=100',
-       { status: 200, body: [] },
-      )
+      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299/timeline?per_page=100', {
+        status: 200,
+        body: [],
+      })
       .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/299/reactions?per_page=100', {
         status: 200,
         body: [],
@@ -359,20 +361,24 @@ describe('Issue tests', {}, () => {
     fetchMock
       .mockGlobal()
       .get(
-        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues',
         { status: 200, body: [mockinputs.issue261] },
+        { query: { state: 'open', labels: 'response-requested', per_page: '100' } },
       )
       .get(
-        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100',
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues',
         { status: 200, body: [] },
+        { query: { state: 'open', labels: 'closing-soon', per_page: '100' } },
       )
       .get(
-        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100',
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues',
         { status: 200, body: [] },
+        { query: { state: 'open', labels: 'stale-pr', per_page: '100' } },
       )
       .get(
-        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&sort=updated&direction=asc&per_page=100',
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues',
         { status: 200, body: [] },
+        { query: { state: 'open', sort: 'updated', direction: 'asc', per_page: '100' } },
       )
       .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/261/timeline?per_page=100', {
         status: 200,
@@ -386,14 +392,13 @@ describe('Issue tests', {}, () => {
         status: 200,
         body: '',
       });
-    const env = process.env;
-    process.env.STALE_ISSUE_MESSAGE = '';
-    process.env.ANCIENT_ISSUE_MESSAGE = '';
-    process.env.STALE_PR_MESSAGE = '';
+    process.env = Object.assign(OLD_ENV, {
+      ...mockinputs.actionInputs,
+      'INPUT_ANCIENT-ISSUE-MESSAGE': '',
+      'INPUT_STALE-ISSUE-MESSAGE': '',
+      'INPUT_STALE-PR-MESSAGE': '',
+    });
     await entrypoint.run(fetchMock.fetchHandler);
-    process.env.STALE_ISSUE_MESSAGE = env.STALE_ISSUE_MESSAGE;
-    process.env.ANCIENT_ISSUE_MESSAGE = env.ANCIENT_ISSUE_MESSAGE;
-    process.env.STALE_PR_MESSAGE = env.STALE_PR_MESSAGE;
     expect(github.markStale).not.toHaveBeenCalled();
   });
   it('Does not stale ancient issues with sufficient upvotes', {}, async () => {
@@ -413,7 +418,8 @@ describe('Issue tests', {}, () => {
       )
       .get(
         'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues',
-        { status: 200, body: [mockinputs.issue242] }, { query: { state: 'open', sort: 'updated', direction: 'asc', per_page: '100' } }
+        { status: 200, body: [mockinputs.issue242] },
+        { query: { state: 'open', sort: 'updated', direction: 'asc', per_page: '100' } },
       )
       .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/242/timeline?per_page=100', {
         status: 200,
@@ -574,5 +580,4 @@ describe('Configuration tests', {}, () => {
 
     expect(core.debug).toHaveBeenCalledWith('Issue is an issue, which are excluded');
   });
-
 });

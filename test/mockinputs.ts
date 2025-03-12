@@ -536,8 +536,12 @@ export const issue261 = {
   ],
   state: 'open',
   comments: 1,
-  created_at: new Date(Date.parse(now) - 864e5 * Number.parseFloat(actionInputs['INPUT_DAYS-BEFORE-STALE'])).toISOString(),
-  updated_at: new Date(Date.parse(now) - 864e5 * Number.parseFloat(actionInputs['INPUT_DAYS-BEFORE-STALE'])).toISOString(),
+  created_at: new Date(
+    Date.parse(now) - 864e5 * Number.parseFloat(actionInputs['INPUT_DAYS-BEFORE-STALE']),
+  ).toISOString(),
+  updated_at: new Date(
+    Date.parse(now) - 864e5 * Number.parseFloat(actionInputs['INPUT_DAYS-BEFORE-STALE']),
+  ).toISOString(),
   closed_at: '2016-08-19T12:48:43Z',
   author_association: 'NONE',
   body: null,
@@ -551,7 +555,9 @@ export const issue261Timeline = [
     event: 'labeled',
     commit_id: null,
     commit_url: null,
-    created_at: new Date(Date.parse(now) - 864e5 * Number.parseFloat(actionInputs['INPUT_DAYS-BEFORE-STALE'])).toISOString(),
+    created_at: new Date(
+      Date.parse(now) - 864e5 * Number.parseFloat(actionInputs['INPUT_DAYS-BEFORE-STALE']),
+    ).toISOString(),
     label: { name: 'response-requested', color: 'c5def5' },
   },
 ];

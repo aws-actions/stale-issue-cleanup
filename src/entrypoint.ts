@@ -168,7 +168,7 @@ export async function processIssues(client: ReturnType<typeof github.getOctokit>
         }
       } else {
         if (currentTime >= rrTime) {
-          if (staleMessage) {
+          if (staleMessage && staleMessage !== '') {
             core.debug('time expired on this issue, need to label it stale');
             if (args.dryrun) {
               core.info(`dry run: would mark #${issue.number} as ${staleLabel} due to ${responseRequestedLabel} age`);
@@ -195,7 +195,7 @@ export async function processIssues(client: ReturnType<typeof github.getOctokit>
             core.debug('issue is ancient but has enough upvotes to exempt');
           } else {
             core.debug('issue is ancient and not enough upvotes; marking stale');
-            if (ancientMessage) {
+            if (ancientMessage && ancientMessage !== '') {
               if (args.dryrun) {
                 core.info(
                   `dry run: would mark #${issue.number} as ${staleLabel} due to ${args.useCreatedDateForAncient ? 'created date' : 'last updated'} age`,
@@ -209,7 +209,7 @@ export async function processIssues(client: ReturnType<typeof github.getOctokit>
           }
         } else {
           core.debug('issue is ancient and not enough upvotes; marking stale');
-          if (ancientMessage) {
+          if (ancientMessage && ancientMessage !== '') {
             if (args.dryrun) {
               core.info(
                 `dry run: would mark #${issue.number} as ${staleLabel} due to ${args.useCreatedDateForAncient ? 'created date' : 'last updated'} age`,
