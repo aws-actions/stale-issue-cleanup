@@ -32,7 +32,7 @@ Here's an abbreviated example with just the step for this action:
 
 ```yaml
 steps:
-- uses: aws-actions/stale-issue-cleanup@v3
+- uses: aws-actions/stale-issue-cleanup@v7.1.0
   with:
     # Types of issues that will be processed
     issue-types: issues,pull_requests
@@ -69,7 +69,7 @@ steps:
 **NOTE:** For stability, you should use the action with either an
 explicit tag, or commit SHA:
 
-`uses: aws-actions/stale-issue-cleanup@v7` 
+`uses: aws-actions/stale-issue-cleanup@v7.1.0` 
 
 ## License Summary
 
