@@ -6,6 +6,7 @@ on:
 permissions:
   pull-requests: write
   id-token: write
+  contents: read
 jobs:
   dependabot:
     runs-on: ubuntu-latest
