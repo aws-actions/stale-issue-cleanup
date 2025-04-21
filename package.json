@@ -32,13 +32,13 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@fetch-mock/vitest": "^0.2.6",
-    "@octokit/plugin-rest-endpoint-methods": "^14.0.0",
+    "@octokit/plugin-rest-endpoint-methods": "^13.3.0",
     "@types/dateformat": "^5.0.3",
     "@types/node": "^22.10.7",
     "@vercel/ncc": "^0.38.3",
     "@vitest/coverage-v8": "^2.1.8",
     "dotenv": "^16.0.3",
-    "typescript": "^5.8.3",
+    "typescript": "^5.7.3",
     "vitest": "^2.1.8"
   }
 }
