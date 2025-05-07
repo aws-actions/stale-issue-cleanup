@@ -26,7 +26,7 @@
   "homepage": "https://github.com/aws-actions/stale-issue-cleanup/#readme",
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.0",
+    "@actions/github": "^6.0.1",
     "dateformat": "^4.4.1"
   },
   "devDependencies": {
