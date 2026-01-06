@@ -28,7 +28,7 @@ jobs:
         with:
           parse-json-secrets: true
           secret-ids: |
-            ${{ secrets.SECRET_ARN }}
+            OSDS, ${{ secrets.SECRET_ARN }}
       - name: Approve PR if not already approved
         run: |
           gh pr checkout "$PR_URL"
