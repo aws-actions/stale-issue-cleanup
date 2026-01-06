@@ -40,7 +40,7 @@ jobs:
         with:
           parse-json-secrets: true
           secret-ids: |
-            ${{ secrets.SECRET_ARN }}
+            OSDS, ${{ secrets.SECRET_ARN }}
       - name: Commit dist files to main
         run: |
           echo "::add-mask::${{ env.OSDS_ACCESS_TOKEN }}"

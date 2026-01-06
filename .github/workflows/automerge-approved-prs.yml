@@ -24,7 +24,7 @@ jobs:
         with:
           parse-json-secrets: true
           secret-ids: |
-            ${{ secrets.SECRET_ARN }}
+            OSDS, ${{ secrets.SECRET_ARN }}
       - name: Enable PR automerge
         run: gh pr merge --auto --squash "$PR_URL"
         env:
