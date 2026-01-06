@@ -32,12 +32,12 @@ jobs:
         with:
           parse-json-secrets: true
           secret-ids: |
-            OSDS, ${{ secrets.SECRET_ARN }}
+            ${{ secrets.SECRET_ARN }}
 
       - name: Run release-please
         uses: googleapis/release-please-action@v4
         with:
           release-type: node
-          token: ${{ env.OSDS_ACCESS_TOKEN }}
+          token: ${{ env.GITHUB_AWS_SDK_OSDS_AUTOMATION_ACCESS_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json

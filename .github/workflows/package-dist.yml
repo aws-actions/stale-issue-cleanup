@@ -40,13 +40,13 @@ jobs:
         with:
           parse-json-secrets: true
           secret-ids: |
-            OSDS, ${{ secrets.SECRET_ARN }}
+            ${{ secrets.SECRET_ARN }}
       - name: Commit dist files to main
         run: |
-          echo "::add-mask::${{ env.OSDS_ACCESS_TOKEN }}"
+          echo "::add-mask::${{ env.GITHUB_AWS_SDK_OSDS_AUTOMATION_ACCESS_TOKEN }}"
           git config --global user.email "github-aws-sdk-osds-automation@amazon.com"
           git config --global user.name "github-aws-sdk-osds-automation"
-          git remote set-url origin https://${{ env.OSDS_ACCESS_TOKEN }}@github.com/aws-actions/stale-issue-cleanup.git
+          git remote set-url origin https://${{ env.GITHUB_AWS_SDK_OSDS_AUTOMATION_ACCESS_TOKEN }}@github.com/aws-actions/stale-issue-cleanup.git
           git add dist
           git add THIRD-PARTY
           git commit -m "chore: update dist and licenses" || echo "No changes to commit"

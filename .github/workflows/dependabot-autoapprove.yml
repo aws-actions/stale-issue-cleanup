@@ -28,7 +28,7 @@ jobs:
         with:
           parse-json-secrets: true
           secret-ids: |
-            OSDS, ${{ secrets.SECRET_ARN }}
+            ${{ secrets.SECRET_ARN }}
       - name: Approve PR if not already approved
         run: |
           gh pr checkout "$PR_URL"
@@ -38,4 +38,4 @@ jobs:
           fi
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GITHUB_TOKEN: ${{ env.OSDS_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ env.GITHUB_AWS_SDK_OSDS_AUTOMATION_ACCESS_TOKEN }}
