@@ -32,7 +32,7 @@ jobs:
         with:
           parse-json-secrets: true
           secret-ids: |
-            ${{ secrets.SECRET_ARN }}
+            github-aws-sdk-osds-automation
 
       - name: Run release-please
         uses: googleapis/release-please-action@v4
