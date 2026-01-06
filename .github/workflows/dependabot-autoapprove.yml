@@ -28,7 +28,7 @@ jobs:
         with:
           parse-json-secrets: true
           secret-ids: |
-            ${{ secrets.SECRET_ARN }}
+            github-aws-sdk-osds-automation
       - name: Approve PR if not already approved
         run: |
           gh pr checkout "$PR_URL"

@@ -40,7 +40,7 @@ jobs:
         with:
           parse-json-secrets: true
           secret-ids: |
-            ${{ secrets.SECRET_ARN }}
+            github-aws-sdk-osds-automation
       - name: Commit dist files to main
         run: |
           echo "::add-mask::${{ env.GITHUB_AWS_SDK_OSDS_AUTOMATION_ACCESS_TOKEN }}"
