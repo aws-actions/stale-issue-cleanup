@@ -40,7 +40,7 @@ jobs:
         with:
           parse-json-secrets: true
           secret-ids: |
-            OSDS, ${{ secrets.SECRET_ARN }}
+            github-aws-sdk-osds-automation
       - name: print env
         run: env
 
