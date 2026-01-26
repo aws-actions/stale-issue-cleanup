@@ -3,13 +3,13 @@
   "version": "7.1.0",
   "description": "GitHub Action that cleans up old and response-reqested issues",
   "private": true,
-  "main": "dist/entrypoint.js",
+  "main": "src/entrypoint.ts",
   "scripts": {
     "check-lint": "prettier --list-different src/**.js && eslint src/**.js",
     "lint": "biome check --write src",
     "test": "npm run lint && vitest run && npm run build",
     "build": "tsc",
-    "package": "npm run build && ncc build -m --license THIRD-PARTY -o dist && node -e \"require('fs').cpSync('dist/THIRD-PARTY', './THIRD-PARTY')\"",
+    "package": "npm run build && ncc build -s -m --license THIRD-PARTY -o dist && node -e \"require('fs').cpSync('dist/THIRD-PARTY', './THIRD-PARTY')\"",
     "coverage": "vitest run --coverage"
   },
   "engines": {

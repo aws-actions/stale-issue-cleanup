@@ -1,0 +1,10 @@
+import type { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
+export type issueType = RestEndpointMethodTypes['issues']['get']['response']['data'] | RestEndpointMethodTypes['pulls']['get']['response']['data'];
+export type issueTimelineEventsType = RestEndpointMethodTypes['issues']['listEventsForTimeline']['response']['data'][0];
+export declare function isLabeled(issue: issueType, label: string): boolean;
+export declare function revCompareEventsByDate(a: issueTimelineEventsType, b: issueTimelineEventsType): 1 | 0 | -1;
+export declare function getLastLabelTime(events: issueTimelineEventsType[], label: string): Date | undefined;
+export declare function getLastCommentTime(events: issueTimelineEventsType[]): Date | undefined;
+export declare function asyncForEach<T>(_array: T[], _callback: (item: T, index: number, array: T[]) => Promise<void>): never;
+export declare function dateFormatToIsoUtc(dateTime: Date | string | number): string;
+export declare function parseCommaSeparatedString(s: string): string[];

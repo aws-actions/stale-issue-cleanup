@@ -13,5 +13,4 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 .env
 node_modules/
 coverage/
-dist/*
 !dist/index.js

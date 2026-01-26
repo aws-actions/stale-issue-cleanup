@@ -1,0 +1,24 @@
+import * as github from '@actions/github';
+export type Inputs = {
+    repoToken: string;
+    ancientIssueMessage: string;
+    ancientPrMessage: string;
+    staleIssueMessage: string;
+    stalePrMessage: string;
+    daysBeforeStale: number;
+    daysBeforeClose: number;
+    daysBeforeAncient: number;
+    staleIssueLabel: string;
+    exemptIssueLabels: string;
+    stalePrLabel: string;
+    exemptPrLabels: string;
+    cfsLabel: string;
+    issueTypes: string[];
+    responseRequestedLabel: string;
+    minimumUpvotesToExempt: number;
+    dryrun: boolean;
+    useCreatedDateForAncient: boolean;
+};
+export declare function getAndValidateInputs(): Inputs;
+export declare function processIssues(client: ReturnType<typeof github.getOctokit>, args: Inputs): Promise<void>;
+export declare function run(fetchImpl?: typeof globalThis.fetch): Promise<void>;
