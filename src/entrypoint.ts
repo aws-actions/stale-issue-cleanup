@@ -2,6 +2,9 @@
 import * as core from '@actions/core';
 import { getInput } from '@actions/core';
 import * as github from '@actions/github';
+import type { Octokit } from '@octokit/core';
+import { throttling } from '@octokit/plugin-throttling';
+import type { EndpointDefaults } from '@octokit/types';
 import { closeIssue, getIssues, getTimelineEvents, hasEnoughUpvotes, markStale, removeLabel } from './github';
 import {
   dateFormatToIsoUtc,
@@ -231,7 +234,35 @@ export async function run(fetchImpl?: typeof globalThis.fetch): Promise<void> {
     core.info('Starting issue processing');
     const args = getAndValidateInputs();
     core.debug(JSON.stringify(args, null, 2));
-    const client = github.getOctokit(args.repoToken, { request: { fetch: fetchImpl || globalThis.fetch } });
+    const client = github.getOctokit(
+      args.repoToken,
+      {
+        request: { fetch: fetchImpl || globalThis.fetch },
+        throttle: {
+          onRateLimit: (retryAfter: number, options: EndpointDefaults, octokit: Octokit, retryCount: number) => {
+            octokit.log.warn(
+              `Request quota exhausted for request ${options.method} ${options.url}. Retrying after ${retryAfter} seconds!`,
+            );
+
+            if (retryCount < 3) {
+              // only retries 3 times
+              octokit.log.info(`Retrying after ${retryAfter} seconds! ${retryCount} times`);
+              return true;
+            }
+            return undefined;
+          },
+          onSecondaryRateLimit: (retryAfter: number, options: EndpointDefaults, octokit: Octokit) => {
+            // does not retry, only logs a warning
+            octokit.log.warn(
+              `SecondaryRateLimit detected for request ${options.method} ${options.url}. Retrying after ${retryAfter} seconds!`,
+            );
+            return undefined;
+          },
+        },
+      },
+      // biome-ignore lint/suspicious/noExplicitAny: required because https://github.com/actions/toolkit/issues/2283
+      throttling as any,
+    );
     await processIssues(client, args);
     core.info('Labelled issue processing complete');
     process.exitCode = 0;
