@@ -24,7 +24,7 @@ jobs:
           role-to-assume: arn:aws:iam::206735643321:role/ConfigureAwsCredentialsPackageRole
           role-duration-seconds: 900
       - name: Get bot user token
-        uses: aws-actions/aws-secretsmanager-get-secrets@v2
+        uses: aws-actions/aws-secretsmanager-get-secrets@v3
         with:
           parse-json-secrets: true
           secret-ids: |
