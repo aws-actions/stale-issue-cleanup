@@ -28,7 +28,7 @@ jobs:
           role-session-name: ${{ github.run_id }}
 
       - name: Get git credentials
-        uses: aws-actions/aws-secretsmanager-get-secrets@v2
+        uses: aws-actions/aws-secretsmanager-get-secrets@v3
         with:
           parse-json-secrets: true
           secret-ids: |

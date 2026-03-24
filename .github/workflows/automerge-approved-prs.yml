@@ -20,7 +20,7 @@ jobs:
           role-duration-seconds: 900
           role-session-name: SecretsManagerFetch
       - name: Get bot user token
-        uses: aws-actions/aws-secretsmanager-get-secrets@v2
+        uses: aws-actions/aws-secretsmanager-get-secrets@v3
         with:
           parse-json-secrets: true
           secret-ids: |
