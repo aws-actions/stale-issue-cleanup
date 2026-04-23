@@ -35,7 +35,7 @@ jobs:
             github-aws-sdk-osds-automation
 
       - name: Run release-please
-        uses: googleapis/release-please-action@v4
+        uses: googleapis/release-please-action@v5
         with:
           release-type: node
           token: ${{ env.GITHUB_AWS_SDK_OSDS_AUTOMATION_ACCESS_TOKEN }}
