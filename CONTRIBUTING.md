@@ -73,7 +73,7 @@ Please do **not** create a public github issue.
 
 ## Licensing
 
-See the [LICENSE](https://github.com/aws-actions/stale-issue-cleanup/blob/master/LICENSE)
+See the [LICENSE](LICENSE)
 file for our project's licensing. We will ask you to confirm the
 licensing of your contribution.
 
