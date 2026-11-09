@@ -29,6 +29,9 @@ jobs:
         # Don't set this to not apply a label when closing issues
         closed-for-staleness-label: closed-for-staleness
 
+        # Reason issues are closed with. Ignored for pull requests.
+        state-reason: not_planned
+
         # Issue timing
         days-before-stale: 14
         days-before-close: 7

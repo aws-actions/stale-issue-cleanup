@@ -31,6 +31,39 @@ fetchMock.config.matchPartialBody = true;
   9. If the issue messages are empty, skip that issue type
 */
 describe('Issue tests', {}, () => {
+  const ISSUE_258_URL = 'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/258';
+
+  const mockCloseFlow = () => {
+    fetchMock
+      .mockGlobal()
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100',
+        { status: 200, body: [mockinputs.issue258] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100',
+        { status: 200, body: [] },
+      )
+      .get(
+        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&per_page=100&sort=updated&direction=asc',
+        { status: 200, body: [] },
+      )
+      .get(`${ISSUE_258_URL}/timeline?per_page=100`, { status: 200, body: [...mockinputs.issue258Timeline] })
+      .delete(`${ISSUE_258_URL}/labels/closing-soon`, { status: 200, body: '' })
+      .patch(ISSUE_258_URL, { status: 200, body: '' })
+      .post(`${ISSUE_258_URL}/labels`, { status: 200, body: '' });
+  };
+
+  const closeRequestBody = () => {
+    const call = fetchMock.callHistory.calls(ISSUE_258_URL, { method: 'patch' }).at(-1);
+    expect(call).toBeDefined();
+    return JSON.parse(String(call?.options.body));
+  };
+
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.spyOn(console, 'log');
@@ -52,8 +85,10 @@ describe('Issue tests', {}, () => {
   });
   afterEach(() => {
     // Reest env and terminate any pending nocks
+    delete process.env['INPUT_STATE-REASON'];
     process.env = OLD_ENV;
     fetchMock.removeRoutes();
+    fetchMock.clearHistory();
   });
   afterAll(() => {
     fetchMock.unmockGlobal();
@@ -253,41 +288,23 @@ describe('Issue tests', {}, () => {
   });
 
   it('Closes issues once close timer is up', {}, async () => {
-    fetchMock
-      .mockGlobal()
-      .get(
-        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=response-requested&per_page=100',
-        { status: 200, body: [] },
-      )
-      .get(
-        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=closing-soon&per_page=100',
-        { status: 200, body: [mockinputs.issue258] },
-      )
-      .get(
-        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&labels=stale-pr&per_page=100',
-        { status: 200, body: [] },
-      )
-      .get(
-        'https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues?state=open&per_page=100&sort=updated&direction=asc',
-        { status: 200, body: [] },
-      )
-      .get('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/258/timeline?per_page=100', {
-        status: 200,
-        body: [...mockinputs.issue258Timeline],
-      })
-      .delete('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/258/labels/closing-soon', {
-        status: 200,
-        body: '',
-      })
-      .patch('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/258', { status: 200, body: '' })
-      .post('https://api.github.com/repos/aws-actions/stale-issue-cleanup/issues/258/labels', {
-        status: 200,
-        body: '',
-      });
-
+    mockCloseFlow();
     await entrypoint.run(fetchMock.fetchHandler);
     expect(github.closeIssue).toHaveBeenCalledTimes(1);
     expect(github.removeLabel).toHaveBeenCalledTimes(1);
+  });
+
+  it('Omits state_reason when state-reason is not configured', {}, async () => {
+    mockCloseFlow();
+    await entrypoint.run(fetchMock.fetchHandler);
+    expect(closeRequestBody()).not.toHaveProperty('state_reason');
+  });
+
+  it('Sends state_reason when state-reason is configured', {}, async () => {
+    mockCloseFlow();
+    process.env = Object.assign(OLD_ENV, { ...mockinputs.actionInputs, 'INPUT_STATE-REASON': 'not_planned' });
+    await entrypoint.run(fetchMock.fetchHandler);
+    expect(closeRequestBody()).toMatchObject({ state: 'closed', state_reason: 'not_planned' });
   });
 
   it('Does nothing if the close timer is not up yet', {}, async () => {
@@ -459,6 +476,7 @@ describe('Configuration tests', {}, () => {
   });
   afterEach(() => {
     // Reest env
+    delete process.env['INPUT_STATE-REASON'];
     process.env = OLD_ENV;
     fetchMock.removeRoutes();
   });
@@ -506,6 +524,24 @@ describe('Configuration tests', {}, () => {
     expect(() => {
       entrypoint.getAndValidateInputs();
     }).toThrow();
+  });
+
+  it('Reads state-reason', {}, () => {
+    process.env['INPUT_STATE-REASON'] = 'not_planned';
+    expect(entrypoint.getAndValidateInputs().stateReason).toBe('not_planned');
+    process.env['INPUT_STATE-REASON'] = 'completed';
+    expect(entrypoint.getAndValidateInputs().stateReason).toBe('completed');
+  });
+
+  it('Leaves state-reason undefined when unset or empty', {}, () => {
+    expect(entrypoint.getAndValidateInputs().stateReason).toBeUndefined();
+    process.env['INPUT_STATE-REASON'] = '';
+    expect(entrypoint.getAndValidateInputs().stateReason).toBeUndefined();
+  });
+
+  it('Throws on an invalid state-reason', {}, () => {
+    process.env['INPUT_STATE-REASON'] = 'invalid-state-reason';
+    expect(() => entrypoint.getAndValidateInputs()).toThrow(/state-reason/);
   });
 
   it('Skips pull requests when pull_requests not in issue-types', async () => {

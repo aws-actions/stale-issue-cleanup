@@ -1,11 +1,16 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import type { Inputs } from './entrypoint';
+import type { Inputs, StateReason } from './entrypoint';
 import type { issueTimelineEventsType, issueType } from './utils';
 
 const MS_PER_DAY = 86400000;
 
-export async function closeIssue(client: ReturnType<typeof github.getOctokit>, issue: issueType, cfsLabel: string) {
+export async function closeIssue(
+  client: ReturnType<typeof github.getOctokit>,
+  issue: issueType,
+  cfsLabel: string,
+  stateReason?: StateReason,
+) {
   core.debug(`closing issue #${issue.number} for staleness`);
   if (cfsLabel && cfsLabel !== '') {
     await client.rest.issues.addLabels({
@@ -20,6 +25,7 @@ export async function closeIssue(client: ReturnType<typeof github.getOctokit>, i
     repo: github.context.repo.repo,
     issue_number: issue.number,
     state: 'closed',
+    state_reason: stateReason,
   });
 }
 

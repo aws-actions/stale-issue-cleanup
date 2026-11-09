@@ -52,6 +52,9 @@ steps:
     response-requested-label: response-requested
     closed-for-staleness-label: closed-for-staleness
 
+    # Reason issues are closed with. Ignored for pull requests.
+    state-reason: not_planned
+
     # Issue timing and upvote counting
     days-before-stale: 4
     days-before-close: 7

@@ -13,6 +13,9 @@ import {
 
 const MS_PER_DAY = 86400000;
 
+const STATE_REASONS = ['completed', 'not_planned'] as const;
+export type StateReason = (typeof STATE_REASONS)[number];
+
 export type Inputs = {
   repoToken: string;
   ancientIssueMessage: string;
@@ -32,12 +35,23 @@ export type Inputs = {
   minimumUpvotesToExempt: number;
   dryrun: boolean;
   useCreatedDateForAncient: boolean;
+  stateReason?: StateReason;
 };
 
 const getRequiredInput = (name: string): string => core.getInput(name, { required: true });
 const getNumberInput = (name: string): number => Number.parseFloat(core.getInput(name));
 const getOptionalBooleanInput = (name: string): boolean =>
   core.getInput(name, { required: false }).toLowerCase() === 'true';
+const getOptionalEnumInput = <T extends string>(name: string, allowed: readonly T[]): T | undefined => {
+  const value = core.getInput(name, { required: false });
+  if (value === '') {
+    return undefined;
+  }
+  if (!allowed.includes(value as T)) {
+    throw Error(`input ${name} must be one of ${allowed.join(', ')}, but got '${value}'`);
+  }
+  return value as T;
+};
 
 export function getAndValidateInputs(): Inputs {
   const args = {
@@ -59,6 +73,7 @@ export function getAndValidateInputs(): Inputs {
     minimumUpvotesToExempt: getNumberInput('minimum-upvotes-to-exempt'),
     dryrun: getOptionalBooleanInput('dry-run'),
     useCreatedDateForAncient: getOptionalBooleanInput('use-created-date-for-ancient'),
+    stateReason: getOptionalEnumInput('state-reason', STATE_REASONS),
   };
 
   for (const numberInput of [args.daysBeforeAncient, args.daysBeforeClose, args.daysBeforeStale]) {
@@ -139,11 +154,13 @@ export async function processIssues(client: ReturnType<typeof github.getOctokit>
       } else {
         if (currentTime > sTime) {
           core.debug('time expired on this issue, need to close it');
+          const stateReason = isPr ? undefined : args.stateReason;
+          const reasonSuffix = stateReason ? ` as ${stateReason}` : '';
           if (args.dryrun) {
-            core.info(`dry run: would remove ${staleLabel} for #${issue.number} and close`);
+            core.info(`dry run: would remove ${staleLabel} for #${issue.number} and close${reasonSuffix}`);
           } else {
             await removeLabel(client, issue, staleLabel);
-            await closeIssue(client, issue, args.cfsLabel);
+            await closeIssue(client, issue, args.cfsLabel, stateReason);
           }
         } else {
           // else ignore it because we need to wait longer before closing

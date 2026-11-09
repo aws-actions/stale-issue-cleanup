@@ -43,6 +43,8 @@ inputs:
     description: 'The label that gets applied when an issue is closed for staleness.'
   minimum-upvotes-to-exempt:
     description: 'The minimum number of "upvotes" that an issue needs to have before not marking as ancient.'
+  state-reason:
+    description: 'Reason issues are closed with. Ignored for pull requests.'
   loglevel:
     description: 'Set to DEBUG to enable debug logging'
   dry-run:
